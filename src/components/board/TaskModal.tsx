@@ -46,6 +46,7 @@ export function TaskModal(props: TaskModalProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react/no-did-mount-set-state, @typescript-eslint/no-unused-expressions
     setIsMounted(true);
   }, []);
 
@@ -85,16 +86,17 @@ export function TaskModal(props: TaskModalProps) {
     <Drawer.Root open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 max-h-[96vh] flex flex-col rounded-t-[20px] bg-white z-50 outline-none pb-safe-bottom shadow-2xl">
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 max-h-[96vh] flex flex-col rounded-t-[20px] bg-gray-50 z-50 outline-none pb-safe-bottom shadow-2xl">
            {/* Handle Indicator */}
-          <div className="p-4 bg-white rounded-t-[20px] flex-1 overflow-y-auto">
-            <div className="mx-auto w-16 h-1.5 shrink-0 rounded-full bg-gray-300 mb-8" />
-            <div className="max-w-md mx-auto">
-              <Drawer.Title className="font-bold text-xl mb-6 text-center text-gray-800">
+          <div className="w-full flex justify-center py-3 bg-white rounded-t-[20px]">
+             <div className="w-16 h-1.5 shrink-0 rounded-full bg-gray-300" />
+          </div>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+              <Drawer.Title className="sr-only">
                 {props.initialData ? "タスクを編集" : "新しいタスクを作成"}
               </Drawer.Title>
               <TaskForm {...props} />
-            </div>
           </div>
         </Drawer.Content>
       </Drawer.Portal>
@@ -149,144 +151,165 @@ function TaskForm({
   };
 
   return (
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5 pb-8">
-          {/* Title */}
-          <div className="space-y-1.5">
-            <label htmlFor="title" className="text-sm font-semibold text-(--color-text-primary)">
-              タイトル <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="title"
-              id="title"
-              required
-              defaultValue={initialData?.title}
-              placeholder="例: 苗の発注、土壌測定など"
-              className="w-full px-4 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 transition-shadow text-base"
-            />
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
-              <AlignLeft className="w-4 h-4 text-(--color-text-muted)" />
-              詳細
-            </label>
-            <textarea
-              name="description"
-              id="description"
-              rows={3}
-              defaultValue={initialData?.description}
-              placeholder="タスクの詳細を入力..."
-              className="w-full px-4 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 transition-shadow resize-none text-base"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Status (Column) */}
-            <div className="space-y-1.5">
-              <label htmlFor="status" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
-                <Tag className="w-4 h-4 text-(--color-text-muted)" />
-                ステータス
-              </label>
-              <select
-                name="status"
-                id="status"
-                defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                className="w-full px-3 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base"
-              >
-                {columns.map((col) => (
-                  <option key={col.id} value={col.id}>
-                    {col.title}
-                  </option>
-                ))}
-              </select>
+        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col h-full bg-gray-50/50">
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+            
+            {/* Title Section - Standalone Card */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+               <label htmlFor="title" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                 タスク名 <span className="text-red-500">*</span>
+               </label>
+               <input
+                 type="text"
+                 name="title"
+                 id="title"
+                 required
+                 defaultValue={initialData?.title}
+                 placeholder="何をする予定ですか？"
+                 className="w-full text-lg font-bold text-gray-900 placeholder:text-gray-300 border-none p-0 focus:ring-0 bg-transparent"
+               />
             </div>
 
-            {/* Priority */}
-            <div className="space-y-1.5">
-              <label htmlFor="priority" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
-                <AlertCircle className="w-4 h-4 text-(--color-text-muted)" />
-                優先度
-              </label>
-              <select
-                name="priority"
-                id="priority"
-                defaultValue={initialData?.priority || "medium"}
-                className="w-full px-3 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base"
-              >
-                <option value="high">高 (High)</option>
-                <option value="medium">中 (Medium)</option>
-                <option value="low">低 (Low)</option>
-              </select>
+            {/* Details Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+               {/* Description */}
+               <div className="p-4">
+                  <div className="flex items-start gap-3">
+                     <AlignLeft className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
+                     <div className="flex-1">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">詳細</label>
+                        <textarea
+                          name="description"
+                          id="description"
+                          rows={3}
+                          defaultValue={initialData?.description}
+                          placeholder="メモや手順を入力..."
+                          className="w-full text-base text-gray-900 placeholder:text-gray-400 border-none p-0 focus:ring-0 bg-transparent resize-none leading-relaxed"
+                        />
+                     </div>
+                  </div>
+               </div>
             </div>
-          </div>
 
-          {/* Due Date */}
-          <div className="space-y-1.5">
-            <label htmlFor="dueDate" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
-              <CalendarIcon className="w-4 h-4 text-(--color-text-muted)" />
-              期限
-            </label>
-            <input
-              type="date"
-              name="dueDate"
-              defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-              className="w-full px-3 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base"
-            />
-          </div>
+            {/* Properties Section - Grouped List */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+               
+               {/* Status */}
+               <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                     <Tag className="w-5 h-5 text-gray-400" />
+                     <span className="text-sm font-medium">ステータス</span>
+                  </div>
+                  <div className="relative">
+                     <select
+                       name="status"
+                       id="status"
+                       defaultValue={initialData?.status || initialStatus || columns[0]?.id}
+                       className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 cursor-pointer"
+                       style={{ direction: 'rtl' }}
+                     >
+                       {columns.map((col) => (
+                         <option key={col.id} value={col.id}>
+                           {col.title}
+                         </option>
+                       ))}
+                     </select>
+                     {/* Chevron could go here */}
+                  </div>
+               </div>
 
-          {/* Assignee */}
-          <div className="space-y-1.5">
-            <label htmlFor="assigneeId" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
-              <User className="w-4 h-4 text-(--color-text-muted)" />
-              担当者
-            </label>
-            <select
-              name="assigneeId"
-              id="assigneeId"
-              defaultValue={initialData?.assigneeId || ""}
-              className="w-full px-4 py-3 bg-(--color-bg-primary) border border-(--color-border) rounded-xl focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base appearance-none"
-            >
-              <option value="">担当者なし</option>
-              {profiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>
-                  {profile.displayName || profile.email}
-                </option>
-              ))}
-            </select>
-            {/* Custom arrow could be added here if needed, but appearance-none is safer for consistent heights */}
-          </div>
+               {/* Priority */}
+               <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                     <AlertCircle className="w-5 h-5 text-gray-400" />
+                     <span className="text-sm font-medium">優先度</span>
+                  </div>
+                  <select
+                     name="priority"
+                     id="priority"
+                     defaultValue={initialData?.priority || "medium"}
+                     className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 cursor-pointer"
+                     style={{ direction: 'rtl' }}
+                  >
+                     <option value="high">🔥 高 (High)</option>
+                     <option value="medium">⚡ 中 (Medium)</option>
+                     <option value="low">☕ 低 (Low)</option>
+                  </select>
+               </div>
 
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-6 border-t border-(--color-border)">
+               {/* Due Date */}
+               <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                     <CalendarIcon className="w-5 h-5 text-gray-400" />
+                     <span className="text-sm font-medium">期限</span>
+                  </div>
+                  <input
+                    type="date"
+                    name="dueDate"
+                    defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
+                    className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 focus:ring-0 font-mono"
+                  />
+               </div>
+
+               {/* Assignee */}
+               <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gray-700">
+                     <User className="w-5 h-5 text-gray-400" />
+                     <span className="text-sm font-medium">担当者</span>
+                  </div>
+                  <select
+                    name="assigneeId"
+                    id="assigneeId"
+                    defaultValue={initialData?.assigneeId || ""}
+                    className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 text-ellipsis max-w-[150px]"
+                    style={{ direction: 'rtl' }}
+                  >
+                    <option value="">未設定</option>
+                    {profiles.map((profile) => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.displayName || profile.email}
+                      </option>
+                    ))}
+                  </select>
+               </div>
+            </div>
+            
             {initialData && onDelete && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm("本当にこのタスクを削除しますか？")) {
-                    onDelete();
-                  }
-                }}
-                className="mr-auto flex items-center justify-center gap-2 px-5 py-3 text-base font-medium text-(--color-accent-danger) bg-red-50 hover:bg-red-100 rounded-xl transition-colors touch-target"
-              >
-                <Trash2 className="w-5 h-5" />
-                <span className="md:inline hidden">削除</span>
-              </button>
+               <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm("本当にこのタスクを削除しますか？")) {
+                      onDelete();
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 p-4 text-red-500 font-medium bg-red-50 rounded-2xl hover:bg-red-100 transition-colors"
+               >
+                  <Trash2 className="w-5 h-5" />
+                  このタスクを削除
+               </button>
             )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 text-base font-medium text-(--color-text-secondary) hover:bg-(--color-bg-hover) rounded-xl transition-colors touch-target"
-            >
-              キャンセル
-            </button>
-            <button
-              type="submit"
-              className="px-8 py-3 text-base font-bold text-white bg-(--color-accent-primary) hover:bg-blue-600 rounded-xl shadow-lg hover:shadow-xl transition-all touch-target"
-            >
-              {initialData ? "保存" : "追加"}
-            </button>
+
+            {/* Spacer for bottom safe area/button */}
+            <div className="h-24"></div>
+          </div>
+
+          {/* Sticky Footer Action */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 pb-safe-bottom">
+             <div className="flex gap-3">
+                <button
+                   type="button"
+                   onClick={onClose}
+                   className="flex-1 py-3.5 text-base font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                >
+                   キャンセル
+                </button>
+                <button
+                   type="submit"
+                   className="flex-[2_2_0%] py-3.5 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                >
+                   {initialData ? "変更を保存" : "タスクを作成"}
+                </button>
+             </div>
           </div>
         </form>
   )
