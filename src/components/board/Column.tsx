@@ -43,17 +43,17 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
           borderColor: `${column.color}20`
         }}
       >
-        <h3 className="font-bold text-(--color-text-primary) flex items-center gap-2">
+        <h3 className="font-bold text-lg text-(--color-text-primary) flex items-center gap-2">
           {/* Accent Line/Indicator */}
           <div 
-             className="w-1 h-5 rounded-full"
+             className="w-1.5 h-6 rounded-full"
              style={{ backgroundColor: column.color }}
           />
           {column.title}
           
           {/* Styled count badge */}
           <span 
-            className="text-xs font-bold px-2 py-0.5 rounded-full border"
+            className="text-sm font-bold px-2.5 py-0.5 rounded-full border"
             style={{ 
                 backgroundColor: `${column.color}20`,
                 color: column.color, // Text matches color
@@ -64,11 +64,11 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
           </span>
         </h3>
         <button
-          className="p-1.5 touch-target rounded-md hover:bg-white/50 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+          className="p-2 touch-target rounded-full hover:bg-white/50 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
           aria-label="タスクを追加"
           onClick={() => onAddTask(column.id)}
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-6 h-6" />
         </button>
       </div>
 
@@ -87,7 +87,7 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
         </SortableContext>
 
         {column.tasks.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-sm text-(--color-text-muted) border-2 border-dashed border-(--color-border) rounded-lg">
+          <div className="flex items-center justify-center h-24 text-base text-(--color-text-muted) border-2 border-dashed border-(--color-border) rounded-xl">
             ドロップしてタスクを追加
           </div>
         )}
@@ -96,8 +96,8 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
       {/* Add Task Button */}
         <button
           onClick={() => onAddTask(column.id)}
-          className="w-full py-2.5 mt-2 flex items-center justify-center gap-2 text-sm font-medium text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-bg-glass) rounded-xl border border-dashed border-(--color-border) transition-all active:scale-95"
-        ><Plus className="w-4 h-4" />
+          className="w-full py-3 mt-2 flex items-center justify-center gap-2 text-base font-bold text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-bg-glass) rounded-xl border-2 border-dashed border-(--color-border) transition-all active:scale-95"
+        ><Plus className="w-5 h-5" />
         タスクを追加
       </button>
     </div>

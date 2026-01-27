@@ -154,10 +154,10 @@ function TaskForm({
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col h-full bg-gray-50/50">
           <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
             
-            {/* Title Section - Standalone Card */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-               <label htmlFor="title" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                 タスク名 <span className="text-red-500">*</span>
+            {/* Title Section - Pop Card */}
+            <div className="bg-white p-5 rounded-[24px] shadow-sm border-2 border-indigo-100 flex flex-col justify-center active:scale-[0.99] transition-transform duration-200">
+               <label htmlFor="title" className="block text-sm font-bold text-indigo-500 uppercase tracking-widest mb-2">
+                 すること (タイトル) <span className="text-red-500 text-lg">*</span>
                </label>
                <input
                  type="text"
@@ -165,49 +165,51 @@ function TaskForm({
                  id="title"
                  required
                  defaultValue={initialData?.title}
-                 placeholder="何をする予定ですか？"
-                 className="w-full text-lg font-bold text-gray-900 placeholder:text-gray-300 border-none p-0 focus:ring-0 bg-transparent"
+                 placeholder="ここにタスクを書く"
+                 className="w-full text-2xl font-black text-gray-800 placeholder:text-gray-300 border-none p-0 focus:ring-0 bg-transparent leading-tight"
                />
             </div>
 
             {/* Details Section */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+            <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 overflow-hidden">
                {/* Description */}
-               <div className="p-4">
-                  <div className="flex items-start gap-3">
-                     <AlignLeft className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
-                     <div className="flex-1">
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">詳細</label>
-                        <textarea
-                          name="description"
-                          id="description"
-                          rows={3}
-                          defaultValue={initialData?.description}
-                          placeholder="メモや手順を入力..."
-                          className="w-full text-base text-gray-900 placeholder:text-gray-400 border-none p-0 focus:ring-0 bg-transparent resize-none leading-relaxed"
-                        />
+               <div className="p-5 active:bg-gray-50 transition-colors">
+                  <div className="flex flex-col gap-3">
+                     <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-gray-100 text-gray-600 rounded-xl">
+                           <AlignLeft className="w-6 h-6" />
+                        </div>
+                        <label htmlFor="description" className="text-lg font-bold text-gray-800">メモ・詳細</label>
                      </div>
+                     <textarea
+                       name="description"
+                       id="description"
+                       rows={4}
+                       defaultValue={initialData?.description}
+                       placeholder="くわしい内容や手順など..."
+                       className="w-full text-lg text-gray-800 placeholder:text-gray-400 border-none p-0 focus:ring-0 bg-transparent resize-none leading-relaxed"
+                     />
                   </div>
                </div>
             </div>
 
-            {/* Properties Section - Grouped List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+            {/* Properties Section - Pop Grouped List */}
+            <div className="space-y-4">
                
                {/* Status */}
-               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3 text-gray-700">
-                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                        <Tag className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
+                        <Tag className="w-6 h-6" />
                      </div>
-                     <span className="text-sm font-bold text-gray-900">ステータス</span>
+                     <span className="text-lg font-bold text-gray-800">ステータス</span>
                   </div>
                   <div className="relative flex items-center">
                      <select
                        name="status"
                        id="status"
                        defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
+                       className="appearance-none bg-transparent text-right font-bold text-xl text-blue-600 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
                        style={{ direction: 'rtl' }}
                      >
                        {columns.map((col) => (
@@ -216,76 +218,76 @@ function TaskForm({
                          </option>
                        ))}
                      </select>
-                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
+                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
                   </div>
                </div>
 
                {/* Priority */}
-               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3 text-gray-700">
-                     <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                        <AlertCircle className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
+                        <AlertCircle className="w-6 h-6" />
                      </div>
-                     <span className="text-sm font-bold text-gray-900">優先度</span>
+                     <span className="text-lg font-bold text-gray-800">優先度</span>
                   </div>
                   <div className="relative flex items-center">
                      <select
                         name="priority"
                         id="priority"
                         defaultValue={initialData?.priority || "medium"}
-                        className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
+                        className="appearance-none bg-transparent text-right font-bold text-xl text-amber-600 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
                         style={{ direction: 'rtl' }}
                      >
-                        <option value="high">🔥 高 (High)</option>
-                        <option value="medium">⚡ 中 (Medium)</option>
-                        <option value="low">☕ 低 (Low)</option>
+                        <option value="high">高</option>
+                        <option value="medium">中</option>
+                        <option value="low">低</option>
                      </select>
-                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
+                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
                   </div>
                </div>
 
                {/* Due Date */}
-               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3 text-gray-700">
-                     <div className="p-2 bg-red-50 text-red-600 rounded-lg">
-                        <CalendarIcon className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2.5 bg-red-100 text-red-600 rounded-xl">
+                        <CalendarIcon className="w-6 h-6" />
                      </div>
-                     <span className="text-sm font-bold text-gray-900">期限</span>
+                     <span className="text-lg font-bold text-gray-800">期限</span>
                   </div>
                   <div className="relative flex items-center">
                      <input
                        type="date"
                        name="dueDate"
                        defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-2 focus:ring-0 font-mono"
+                       className="appearance-none bg-transparent text-right font-bold text-xl text-gray-800 border-none p-0 pr-2 focus:ring-0 font-mono"
                      />
                   </div>
                </div>
 
                {/* Assignee */}
-               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3 text-gray-700">
-                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                        <User className="w-5 h-5" />
+               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl">
+                        <User className="w-6 h-6" />
                      </div>
-                     <span className="text-sm font-bold text-gray-900">担当者</span>
+                     <span className="text-lg font-bold text-gray-800">担当者</span>
                   </div>
                   <div className="relative flex items-center">
                      <select
                        name="assigneeId"
                        id="assigneeId"
                        defaultValue={initialData?.assigneeId || ""}
-                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 text-ellipsis max-w-[150px] z-10"
+                       className="appearance-none bg-transparent text-right font-bold text-xl text-gray-800 border-none p-0 pr-8 focus:ring-0 text-ellipsis max-w-[150px] z-10"
                        style={{ direction: 'rtl' }}
                      >
-                       <option value="">未設定</option>
+                       <option value="">(未設定)</option>
                        {profiles.map((profile) => (
                          <option key={profile.id} value={profile.id}>
                            {profile.displayName || profile.email}
                          </option>
                        ))}
                      </select>
-                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
+                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
                   </div>
                </div>
             </div>
@@ -298,32 +300,32 @@ function TaskForm({
                       onDelete();
                     }
                   }}
-                  className="w-full flex items-center justify-center gap-2 p-4 text-red-500 font-medium bg-red-50 rounded-2xl hover:bg-red-100 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 p-5 text-red-500 font-bold text-lg bg-red-50 rounded-[20px] hover:bg-red-100 transition-colors active:scale-95"
                >
-                  <Trash2 className="w-5 h-5" />
-                  このタスクを削除
+                  <Trash2 className="w-6 h-6" />
+                  このタスクを削除する
                </button>
             )}
 
             {/* Spacer for bottom safe area/button */}
-            <div className="h-24"></div>
+            <div className="h-28"></div>
           </div>
 
           {/* Sticky Footer Action */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 pb-safe-bottom">
-             <div className="flex gap-3">
+          <div className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-gray-200 pb-safe-bottom z-20">
+             <div className="flex gap-4">
                 <button
                    type="button"
                    onClick={onClose}
-                   className="flex-1 py-3.5 text-base font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+                   className="flex-1 py-4 text-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors active:scale-95"
                 >
-                   キャンセル
+                   やめる
                 </button>
                 <button
                    type="submit"
-                   className="flex-[2_2_0%] py-3.5 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-[0.98]"
+                   className="flex-[2_2_0%] py-4 text-lg font-bold text-white bg-blue-500 hover:bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 active:shadow-sm"
                 >
-                   {initialData ? "変更を保存" : "タスクを作成"}
+                   {initialData ? "保存する！" : "追加する！"}
                 </button>
              </div>
           </div>

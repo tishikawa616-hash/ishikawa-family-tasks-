@@ -46,6 +46,7 @@
 
 html {
   scroll-behavior: smooth;
+  font-size: 17px; /* Increase base size for better readability */
 }
 
 body {
