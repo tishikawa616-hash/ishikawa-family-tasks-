@@ -18,6 +18,8 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import type { Board as BoardType, Task, Column as ColumnType } from "@/types/board";
 import { Column } from "./Column";
 import { TaskCard } from "./TaskCard";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface BoardProps {
   board: BoardType;
@@ -161,6 +163,9 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
     }
   };
 
+  // State for mobile tabs
+  const [activeTabId, setActiveTabId] = useState("col-todo");
+
   if (!isMounted) {
     return (
       <div className="flex gap-4 p-4 md:p-6 overflow-x-auto md:overflow-x-auto overflow-y-auto min-h-[calc(100vh-80px)] mobile-column-stack">
@@ -176,6 +181,8 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
     );
   }
 
+  const activeColumn = board.columns.find((col) => col.id === activeTabId);
+
   return (
     <DndContext
       id="kanban-board-dnd-context"
@@ -185,15 +192,71 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 p-4 md:p-6 overflow-x-auto md:overflow-x-auto overflow-y-auto min-h-[calc(100vh-80px)] mobile-column-stack">
-        {board.columns.map((column) => (
-          <Column
-            key={column.id}
-            column={column}
-            onAddTask={onAddTask}
-            onTaskClick={onTaskClick}
-          />
-        ))}
+      <div className="flex flex-col h-full w-full">
+         {/* Mobile Tab Bar */}
+         <div className="flex md:hidden shrink-0 border-b border-gray-200 bg-white/50 backdrop-blur-sm overflow-x-auto no-scrollbar">
+            {board.columns.map((col) => (
+               <button
+                 key={col.id}
+                 onClick={() => setActiveTabId(col.id)}
+                 className={cn(
+                   "flex-1 min-w-[30%] px-2 py-3 text-sm font-medium whitespace-nowrap transition-colors relative flex items-center justify-center gap-2",
+                   activeTabId === col.id ? "text-blue-600" : "text-gray-500"
+                 )}
+               >
+                 {col.title}
+                 <span className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100",
+                    activeTabId === col.id ? "bg-blue-100 text-blue-700" : "text-gray-500"
+                 )}>
+                    {col.tasks.length}
+                 </span>
+                 {activeTabId === col.id && (
+                    <motion.div 
+                        layoutId="activeTab" 
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" 
+                    />
+                 )}
+               </button>
+            ))}
+         </div>
+
+         {/* Board Content */}
+         <div className="flex-1 overflow-hidden relative">
+            {/* Desktop View: All Columns */}
+            <div className="hidden md:flex gap-4 p-4 md:p-6 overflow-x-auto h-full items-start">
+               {board.columns.map((column) => (
+                 <Column
+                   key={column.id}
+                   column={column}
+                   onAddTask={onAddTask}
+                   onTaskClick={onTaskClick}
+                 />
+               ))}
+            </div>
+
+            {/* Mobile View: Single Tabbed Column */}
+            <div className="md:hidden p-4 h-full overflow-y-auto">
+               <AnimatePresence mode="wait">
+                 {activeColumn && (
+                   <motion.div
+                     key={activeColumn.id}
+                     initial={{ opacity: 0, x: 10 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     exit={{ opacity: 0, x: -10 }}
+                     transition={{ duration: 0.2 }}
+                     className="h-full"
+                   >
+                     <Column
+                       column={activeColumn}
+                       onAddTask={onAddTask}
+                       onTaskClick={onTaskClick}
+                     />
+                   </motion.div>
+                 )}
+               </AnimatePresence>
+            </div>
+         </div>
       </div>
 
       <DragOverlay>

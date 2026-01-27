@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import { LayoutGrid, Calendar as CalendarIcon, Search, Bell, LogOut } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
+import { BottomNav } from "@/components/layout/BottomNav";
 import type { Board as BoardType, Task, Column } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -285,7 +286,7 @@ export default function Home() {
         </div>
 
         {/* View Switcher - Center */}
-        <div className="flex bg-(--color-bg-primary) rounded-xl p-1 border border-gray-200">
+        <div className="hidden md:flex bg-(--color-bg-primary) rounded-xl p-1 border border-gray-200">
           <button
             onClick={() => setCurrentView("board")}
             className={cn(
@@ -342,7 +343,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 overflow-hidden relative pb-20 md:pb-0">
         {currentView === "board" ? (
           <Board
             board={board}
@@ -356,7 +357,6 @@ export default function Home() {
         )}
         
         {/* Empty State / Seed Button Helper */}
-        {/* Only show if loading is done, columns are empty (except structure), and we want to offer help */}
         {!isLoading && board.columns.every(col => col.tasks.length === 0) && (
              <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-40">
                 <button 
@@ -372,11 +372,14 @@ export default function Home() {
       {/* Mobile FAB */}
       <button
         onClick={() => openAddTaskModal()}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-(--color-accent-primary) text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all flex items-center justify-center md:hidden z-50 active:scale-95 touch-target safe-bottom"
+        className="fixed bottom-20 right-6 w-14 h-14 rounded-full bg-(--color-accent-primary) text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all flex items-center justify-center md:hidden z-50 active:scale-95 touch-target"
         aria-label="タスクを追加"
       >
         <span className="text-3xl font-light leading-none mb-1">+</span>
       </button>
+
+      {/* Bottom Navigation */}
+      <BottomNav currentView={currentView} onChangeView={setCurrentView} />
 
       {/* Add/Edit Task Modal */}
       <TaskModal
