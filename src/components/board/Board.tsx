@@ -163,7 +163,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
 
   if (!isMounted) {
     return (
-      <div className="flex gap-4 p-6 overflow-x-auto min-h-[calc(100vh-80px)]">
+      <div className="flex gap-4 p-4 md:p-6 overflow-x-auto md:overflow-x-auto overflow-y-auto min-h-[calc(100vh-80px)] mobile-column-stack">
         {board.columns.map((column) => (
           <Column
             key={column.id}
@@ -185,7 +185,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 p-6 overflow-x-auto min-h-[calc(100vh-80px)]">
+      <div className="flex gap-4 p-4 md:p-6 overflow-x-auto md:overflow-x-auto overflow-y-auto min-h-[calc(100vh-80px)] mobile-column-stack">
         {board.columns.map((column) => (
           <Column
             key={column.id}

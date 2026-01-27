@@ -24,11 +24,11 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
   return (
     <div
       className={cn(
-        "flex flex-col w-72 flex-shrink-0",
+        "flex flex-col w-full md:w-72 shrink-0",
         "rounded-xl",
-        "border border-[var(--color-border)]",
+        "border border-(--color-border)",
         "backdrop-blur-sm transition-colors",
-        isOver && "ring-2 ring-[var(--color-accent-primary)] ring-opacity-50"
+        isOver && "ring-2 ring-(--color-accent-primary) ring-opacity-50"
       )}
       style={{
         backgroundColor: column.color 
@@ -37,32 +37,30 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
       }}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between p-3 border-b border-[var(--color-border)]">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full"
-            style={{ backgroundColor: column.color || "#64748b" }}
+      <div className="flex items-center justify-between p-3 border-b border-(--color-border)">
+        <h3 className="font-bold text-(--color-text-primary) flex items-center gap-2">
+          <span
+            className="w-3 h-3 rounded-full ring-2 ring-(--color-accent-primary)"
+            style={{ backgroundColor: column.color }}
           />
-          <h3 className="font-semibold text-sm text-[var(--color-text-primary)]">
-            {column.title}
-          </h3>
-          <span className="text-xs text-[var(--color-text-muted)] bg-[var(--color-bg-glass)] px-2 py-0.5 rounded-full">
+          {column.title}
+          <span className="text-xs font-normal text-(--color-text-muted) bg-(--color-bg-secondary) px-2 py-0.5 rounded-full border border-(--color-border)">
             {column.tasks.length}
           </span>
-        </div>
+        </h3>
         <button
-          className="p-1 rounded-md hover:bg-[var(--color-bg-glass)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+          className="p-2 touch-target rounded-md hover:bg-(--color-bg-glass) text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
           aria-label="タスクを追加"
           onClick={() => onAddTask(column.id)}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
         </button>
       </div>
 
       {/* Tasks Container */}
       <div
         ref={setNodeRef}
-        className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[200px] max-h-[calc(100vh-200px)]"
+        className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[120px] md:min-h-[200px] md:max-h-[calc(100vh-200px)]"
       >
         <SortableContext
           items={column.tasks.map((t) => t.id)}
@@ -74,18 +72,17 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
         </SortableContext>
 
         {column.tasks.length === 0 && (
-          <div className="flex items-center justify-center h-24 text-sm text-[var(--color-text-muted)] border-2 border-dashed border-[var(--color-border)] rounded-lg">
+          <div className="flex items-center justify-center h-20 text-sm text-(--color-text-muted) border-2 border-dashed border-(--color-border) rounded-lg">
             ドロップしてタスクを追加
           </div>
         )}
       </div>
 
       {/* Add Task Button */}
-      <button 
-        onClick={() => onAddTask(column.id)}
-        className="flex items-center gap-2 p-3 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-glass)] transition-colors rounded-b-xl border-t border-[var(--color-border)]"
-      >
-        <Plus className="w-4 h-4" />
+        <button
+          onClick={() => onAddTask(column.id)}
+          className="w-full py-2.5 mt-2 flex items-center justify-center gap-2 text-sm font-medium text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-bg-glass) rounded-xl border border-dashed border-(--color-border) transition-all active:scale-95"
+        ><Plus className="w-4 h-4" />
         タスクを追加
       </button>
     </div>

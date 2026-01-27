@@ -69,7 +69,7 @@ export function TaskModal({
     if (isOpen) {
       fetchProfiles();
     }
-  }, [isOpen]);
+  }, [isOpen, supabase]);
 
   useEffect(() => {
     if (isOpen && formRef.current) {
@@ -81,20 +81,20 @@ export function TaskModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-100 flex items-end md:items-center justify-center md:p-4 bg-black/30 backdrop-blur-sm animate-fade-in"
       onClick={() => onClose()}
     >
       <div 
-        className="w-full max-w-lg bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden"
+        className="w-full md:max-w-lg bg-(--color-bg-card) border border-(--color-border) rounded-t-2xl md:rounded-xl shadow-2xl overflow-hidden max-h-[90vh] md:max-h-[85vh] flex flex-col animate-slide-up md:animate-fade-in safe-bottom"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)]/50">
-          <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
+        <div className="flex items-center justify-between p-4 border-b border-(--color-border) bg-(--color-bg-secondary)/50 shrink-0">
+          <h2 className="text-lg font-bold text-(--color-text-primary)">
             {initialData ? "タスクを編集" : "新しいタスクを追加"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-[var(--color-bg-hover)] text-[var(--color-text-secondary)] transition-colors"
+            className="p-2 rounded-full hover:bg-(--color-bg-hover) text-(--color-text-secondary) transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -103,7 +103,7 @@ export function TaskModal({
         <form ref={formRef} onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Title */}
           <div className="space-y-1.5">
-            <label htmlFor="title" className="text-sm font-semibold text-[var(--color-text-primary)]">
+            <label htmlFor="title" className="text-sm font-semibold text-(--color-text-primary)">
               タイトル <span className="text-red-500">*</span>
             </label>
             <input
@@ -113,15 +113,15 @@ export function TaskModal({
               required
               defaultValue={initialData?.title}
               placeholder="例: 苗の発注、土壌測定など"
-              className="w-full px-4 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50 transition-shadow"
+              className="w-full px-4 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 transition-shadow"
               autoFocus
             />
           </div>
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-              <AlignLeft className="w-4 h-4 text-[var(--color-text-muted)]" />
+            <label htmlFor="description" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+              <AlignLeft className="w-4 h-4 text-(--color-text-muted)" />
               詳細
             </label>
             <textarea
@@ -130,22 +130,22 @@ export function TaskModal({
               rows={3}
               defaultValue={initialData?.description}
               placeholder="タスクの詳細を入力..."
-              className="w-full px-4 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50 transition-shadow resize-none"
+              className="w-full px-4 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 transition-shadow resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {/* Status (Column) */}
             <div className="space-y-1.5">
-              <label htmlFor="status" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-                <Tag className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <label htmlFor="status" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+                <Tag className="w-4 h-4 text-(--color-text-muted)" />
                 ステータス
               </label>
               <select
                 name="status"
                 id="status"
                 defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50"
+                className="w-full px-3 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50"
               >
                 {columns.map((col) => (
                   <option key={col.id} value={col.id}>
@@ -157,15 +157,15 @@ export function TaskModal({
 
             {/* Priority */}
             <div className="space-y-1.5">
-              <label htmlFor="priority" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-                <AlertCircle className="w-4 h-4 text-[var(--color-text-muted)]" />
+              <label htmlFor="priority" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+                <AlertCircle className="w-4 h-4 text-(--color-text-muted)" />
                 優先度
               </label>
               <select
                 name="priority"
                 id="priority"
                 defaultValue={initialData?.priority || "medium"}
-                className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50"
+                className="w-full px-3 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50"
               >
                 <option value="high">高 (High)</option>
                 <option value="medium">中 (Medium)</option>
@@ -176,29 +176,29 @@ export function TaskModal({
 
           {/* Due Date */}
           <div className="space-y-1.5">
-            <label htmlFor="dueDate" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-              <CalendarIcon className="w-4 h-4 text-[var(--color-text-muted)]" />
+            <label htmlFor="dueDate" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+              <CalendarIcon className="w-4 h-4 text-(--color-text-muted)" />
               期限
             </label>
             <input
               type="date"
               name="dueDate"
               defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-              className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50"
+              className="w-full px-3 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50"
             />
           </div>
 
           {/* Assignee */}
           <div className="space-y-1.5">
-            <label htmlFor="assigneeId" className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-primary)]">
-              <User className="w-4 h-4 text-[var(--color-text-muted)]" />
+            <label htmlFor="assigneeId" className="flex items-center gap-2 text-sm font-semibold text-(--color-text-primary)">
+              <User className="w-4 h-4 text-(--color-text-muted)" />
               担当者
             </label>
             <select
               name="assigneeId"
               id="assigneeId"
               defaultValue={initialData?.assigneeId || ""}
-              className="w-full px-3 py-2 bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-primary)]/50"
+              className="w-full px-3 py-2 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50"
             >
               <option value="">担当者なし</option>
               {profiles.map((profile) => (
@@ -210,7 +210,7 @@ export function TaskModal({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-(--color-border)">
             {initialData && onDelete && (
               <button
                 type="button"
@@ -219,7 +219,7 @@ export function TaskModal({
                     onDelete();
                   }
                 }}
-                className="mr-auto flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-accent-danger)] hover:bg-red-50 rounded-lg transition-colors"
+                className="mr-auto flex items-center gap-2 px-4 py-2 text-sm font-medium text-(--color-accent-danger) hover:bg-red-50 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 削除
@@ -228,13 +228,13 @@ export function TaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-hover) rounded-lg transition-colors"
             >
               キャンセル
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-sm font-medium text-white bg-[var(--color-accent-primary)] hover:bg-blue-600 rounded-lg shadow-md hover:shadow-lg transition-all"
+              className="px-6 py-2 text-sm font-medium text-white bg-(--color-accent-primary) hover:bg-blue-600 rounded-lg shadow-md hover:shadow-lg transition-all"
             >
               {initialData ? "保存する" : "追加する"}
             </button>

@@ -186,7 +186,6 @@ export default function Home() {
             description: taskData.description,
             priority: taskData.priority,
             status: taskData.status,
-            status: taskData.status,
             due_date: taskData.dueDate || null, // Handle empty date
             assignee_id: taskData.assigneeId || null,
             tags: [], 
@@ -227,29 +226,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
+    <div className="min-h-screen flex flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-4 py-3 flex items-center justify-between bg-[var(--color-bg-glass)]">
+      <header className="glass sticky top-0 z-50 px-4 py-3 flex items-center justify-between bg-(--color-bg-glass)">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <div className="bg-[var(--color-accent-primary)] p-1.5 rounded-lg">
+            <div className="bg-(--color-accent-primary) p-1.5 rounded-lg">
               <LayoutGrid className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)] hidden sm:block tracking-tight">
-              タスク管理ボード
+            <h1 className="text-lg font-bold text-(--color-text-primary) hidden sm:block active:scale-95 transition-transform cursor-default">
+              石川家タスクボード
             </h1>
           </div>
         </div>
 
         {/* View Switcher - Center */}
-        <div className="flex p-1 bg-[var(--color-bg-secondary)] rounded-lg mx-auto">
+        <div className="flex bg-(--color-bg-primary) rounded-xl p-1 border border-gray-200">
           <button
             onClick={() => setCurrentView("board")}
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               currentView === "board"
-                ? "bg-white text-[var(--color-accent-primary)] shadow-sm"
-                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                ? "bg-white text-(--color-accent-primary) shadow-sm"
+                : "text-(--color-text-primary) hover:text-gray-900 hover:bg-gray-50"
             )}
           >
             <LayoutGrid className="w-4 h-4" />
@@ -258,10 +257,10 @@ export default function Home() {
           <button
             onClick={() => setCurrentView("calendar")}
             className={cn(
-              "flex items-center gap-2 px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+              "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
               currentView === "calendar"
-                ? "bg-white text-[var(--color-accent-primary)] shadow-sm"
-                : "text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]"
+                ? "bg-white text-(--color-accent-primary) shadow-sm"
+                : "text-(--color-text-primary) hover:text-gray-900 hover:bg-gray-50"
             )}
           >
             <CalendarIcon className="w-4 h-4" />
@@ -271,17 +270,19 @@ export default function Home() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 ml-auto">
-          <div className="hidden md:flex items-center gap-2 bg-[var(--color-bg-secondary)] rounded-lg px-3 py-1.5 w-64 mr-2 border border-transparent focus-within:border-[var(--color-accent-primary)] transition-colors">
-            <Search className="w-4 h-4 text-[var(--color-text-muted)]" />
+          <div className="hidden md:flex items-center gap-2 bg-(--color-bg-secondary) rounded-lg px-3 py-1.5 w-64 mr-2 border border-transparent focus-within:border-(--color-accent-primary) transition-colors">
+            <Search className="w-4 h-4 text-(--color-text-muted)" />
             <input
               type="text"
               placeholder="検索"
-              className="bg-transparent border-none outline-none text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] w-full"
+              className="bg-transparent border-none outline-none text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) w-full"
             />
           </div>
-          <button className="p-2 rounded-lg hover:bg-[var(--color-bg-hover)] transition-colors relative text-[var(--color-text-secondary)]">
+          <button
+            className="relative p-2 rounded-xl text-(--color-text-muted) hover:text-(--color-text-secondary) hover:bg-(--color-bg-secondary) transition-colors"
+          >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-[var(--color-accent-danger)] rounded-full border-2 border-white" />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-(--color-accent-danger) rounded-full border-2 border-white" />
           </button>
           <button
             onClick={handleLogout}
@@ -290,7 +291,7 @@ export default function Home() {
           >
             <LogOut className="w-5 h-5" />
           </button>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[var(--color-accent-primary)] to-[var(--color-accent-secondary)] flex items-center justify-center text-white text-xs font-bold ring-2 ring-white cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-(--color-accent-primary) to-(--color-accent-secondary) flex items-center justify-center text-white text-xs font-bold ring-2 ring-white cursor-pointer">
             IS
           </div>
         </div>
@@ -315,7 +316,7 @@ export default function Home() {
       {/* Mobile FAB */}
       <button
         onClick={() => openAddTaskModal()}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[var(--color-accent-primary)] text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all flex items-center justify-center md:hidden z-50 active:scale-95"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-(--color-accent-primary) text-white shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all flex items-center justify-center md:hidden z-50 active:scale-95 touch-target safe-bottom"
         aria-label="タスクを追加"
       >
         <span className="text-3xl font-light leading-none mb-1">+</span>

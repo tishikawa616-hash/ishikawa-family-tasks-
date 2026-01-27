@@ -52,14 +52,14 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
     >
       <div className="flex items-start gap-2">
         <GripVertical
-          className="w-4 h-4 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
+          className="w-4 h-4 text-(--color-text-muted) opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
         />
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-[var(--color-text-primary)] leading-tight">
+          <h4 className="text-sm font-medium text-(--color-text-primary) leading-tight">
             {task.title}
           </h4>
           {task.description && (
-            <p className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-2">
+            <p className="text-xs text-(--color-text-secondary) mt-1 line-clamp-2">
               {task.description}
             </p>
           )}
@@ -76,7 +76,7 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
             {task.tags?.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full bg-[var(--color-bg-glass)] text-[var(--color-text-secondary)]"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full bg-(--color-bg-glass) text-(--color-text-secondary)"
               >
                 <Tag className="w-2.5 h-2.5" />
                 {tag}
