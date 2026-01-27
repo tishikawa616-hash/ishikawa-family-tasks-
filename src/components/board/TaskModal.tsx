@@ -194,101 +194,87 @@ function TaskForm({
             </div>
 
             {/* Properties Section - Pop Grouped List */}
-            <div className="space-y-4">
+            <div className="space-y-3">
                
                {/* Status */}
-               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
-                  <div className="flex items-center gap-3">
-                     <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
-                        <Tag className="w-6 h-6" />
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                     <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
+                        <Tag className="w-5 h-5" />
                      </div>
-                     <span className="text-lg font-bold text-gray-800">ステータス</span>
+                     <span className="text-base font-bold text-gray-800">ステータス</span>
                   </div>
-                  <div className="relative flex items-center">
-                     <select
-                       name="status"
-                       id="status"
-                       defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                       className="appearance-none bg-transparent text-right font-bold text-xl text-blue-600 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
-                       style={{ direction: 'rtl' }}
-                     >
-                       {columns.map((col) => (
-                         <option key={col.id} value={col.id}>
-                           {col.title}
-                         </option>
-                       ))}
-                     </select>
-                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
-                  </div>
+                  <select
+                    name="status"
+                    id="status"
+                    defaultValue={initialData?.status || initialStatus || columns[0]?.id}
+                    className="appearance-none bg-gray-100 text-base font-bold text-blue-600 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-blue-200 cursor-pointer text-right min-w-[100px]"
+                  >
+                    {columns.map((col) => (
+                      <option key={col.id} value={col.id}>
+                        {col.title}
+                      </option>
+                    ))}
+                  </select>
                </div>
 
                {/* Priority */}
-               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
-                  <div className="flex items-center gap-3">
-                     <div className="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
-                        <AlertCircle className="w-6 h-6" />
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                     <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
+                        <AlertCircle className="w-5 h-5" />
                      </div>
-                     <span className="text-lg font-bold text-gray-800">優先度</span>
+                     <span className="text-base font-bold text-gray-800">優先度</span>
                   </div>
-                  <div className="relative flex items-center">
-                     <select
-                        name="priority"
-                        id="priority"
-                        defaultValue={initialData?.priority || "medium"}
-                        className="appearance-none bg-transparent text-right font-bold text-xl text-amber-600 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
-                        style={{ direction: 'rtl' }}
-                     >
-                        <option value="high">高</option>
-                        <option value="medium">中</option>
-                        <option value="low">低</option>
-                     </select>
-                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
-                  </div>
+                  <select
+                     name="priority"
+                     id="priority"
+                     defaultValue={initialData?.priority || "medium"}
+                     className="appearance-none bg-gray-100 text-base font-bold text-amber-600 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-amber-200 cursor-pointer text-right min-w-[80px]"
+                  >
+                     <option value="high">高</option>
+                     <option value="medium">中</option>
+                     <option value="low">低</option>
+                  </select>
                </div>
 
                {/* Due Date */}
-               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
-                  <div className="flex items-center gap-3">
-                     <div className="p-2.5 bg-red-100 text-red-600 rounded-xl">
-                        <CalendarIcon className="w-6 h-6" />
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                     <div className="p-2 bg-red-100 text-red-600 rounded-xl">
+                        <CalendarIcon className="w-5 h-5" />
                      </div>
-                     <span className="text-lg font-bold text-gray-800">期限</span>
+                     <span className="text-base font-bold text-gray-800">期限</span>
                   </div>
-                  <div className="relative flex items-center">
-                     <input
-                       type="date"
-                       name="dueDate"
-                       defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                       className="appearance-none bg-transparent text-right font-bold text-xl text-gray-800 border-none p-0 pr-2 focus:ring-0 font-mono"
-                     />
-                  </div>
+                  <input
+                    type="date"
+                    name="dueDate"
+                    defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
+                    className="appearance-none bg-gray-100 text-base font-bold text-gray-800 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-red-200 cursor-pointer"
+                  />
                </div>
 
                {/* Assignee */}
-               <div className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between active:scale-[0.98] transition-all">
-                  <div className="flex items-center gap-3">
-                     <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-xl">
-                        <User className="w-6 h-6" />
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                     <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
+                        <User className="w-5 h-5" />
                      </div>
-                     <span className="text-lg font-bold text-gray-800">担当者</span>
+                     <span className="text-base font-bold text-gray-800">担当者</span>
                   </div>
-                  <div className="relative flex items-center">
-                     <select
-                       name="assigneeId"
-                       id="assigneeId"
-                       defaultValue={initialData?.assigneeId || ""}
-                       className="appearance-none bg-transparent text-right font-bold text-xl text-gray-800 border-none p-0 pr-8 focus:ring-0 text-ellipsis max-w-[150px] z-10"
-                       style={{ direction: 'rtl' }}
-                     >
-                       <option value="">(未設定)</option>
-                       {profiles.map((profile) => (
-                         <option key={profile.id} value={profile.id}>
-                           {profile.displayName || profile.email}
-                         </option>
-                       ))}
-                     </select>
-                     <ChevronRight className="w-6 h-6 text-gray-400 absolute right-0 pointer-events-none" />
-                  </div>
+                  <select
+                    name="assigneeId"
+                    id="assigneeId"
+                    defaultValue={initialData?.assigneeId || ""}
+                    className="appearance-none bg-gray-100 text-base font-bold text-gray-800 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-200 cursor-pointer text-right max-w-[140px] truncate"
+                  >
+                    <option value="">未設定</option>
+                    {profiles.map((profile) => (
+                      <option key={profile.id} value={profile.id}>
+                        {profile.displayName || profile.email}
+                      </option>
+                    ))}
+                  </select>
                </div>
             </div>
             
