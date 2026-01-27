@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LayoutGrid, Calendar as CalendarIcon, Search, Bell, LogOut } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
 import type { Board as BoardType, Task, Column } from "@/types/board";
@@ -9,10 +9,10 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 const INITIAL_COLUMNS: Column[] = [
-  { id: "col-todo", title: "予定", tasks: [], color: "#3b82f6" },
-  { id: "col-inprogress", title: "作業中", tasks: [], color: "#f59e0b" },
-  { id: "col-review", title: "確認待ち", tasks: [], color: "#8b5cf6" },
-  { id: "col-done", title: "完了", tasks: [], color: "#22c55e" },
+  { id: "col-todo", title: "予定", tasks: [], color: "#0ea5e9" }, // Sky-500
+  { id: "col-inprogress", title: "作業中", tasks: [], color: "#f97316" }, // Orange-500
+  { id: "col-review", title: "確認待ち", tasks: [], color: "#8b5cf6" }, // Violet-500
+  { id: "col-done", title: "完了", tasks: [], color: "#10b981" }, // Emerald-500
 ];
 
 export default function Home() {
@@ -23,6 +23,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const supabase = createClient();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -30,12 +31,7 @@ export default function Home() {
     router.refresh();
   };
 
-  // Fetch tasks on mount
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       const { data: tasks, error } = await supabase
         .from("tasks")
@@ -60,26 +56,74 @@ export default function Home() {
           ...col,
           tasks: tasks
             .filter((t) => t.status === col.id)
-            .map((t) => ({
-              id: t.id,
-              title: t.title,
-              description: t.description,
-              priority: t.priority,
-              dueDate: t.due_date,
-              tags: t.tags || [],
-              assigneeId: t.assignee_id,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              assignee: t.assignee ? {
-                id: (t.assignee as any).id,
-                displayName: (t.assignee as any).display_name || (t.assignee as any).email,
-                avatarUrl: (t.assignee as any).avatar_url,
-              } : undefined,
-            })),
+            .map((t) => {
+               // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               const assigneeData = t.assignee as any;
+               return {
+                  id: t.id,
+                  title: t.title,
+                  description: t.description,
+                  priority: t.priority,
+                  dueDate: t.due_date,
+                  tags: t.tags || [],
+                  assigneeId: t.assignee_id,
+                  assignee: assigneeData ? {
+                    id: assigneeData.id,
+                    displayName: assigneeData.display_name || assigneeData.email,
+                    avatarUrl: assigneeData.avatar_url,
+                  } : undefined,
+               };
+            }),
         }));
         setBoard((prev) => ({ ...prev, columns: newColumns }));
       }
     } catch (err) {
       console.error("Unexpected error:", err);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [supabase]);
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('tasks_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          fetchTasks(); // Refresh data on any change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, fetchTasks]);
+
+  // Fetch tasks on mount
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
+
+  const handleSeedData = async () => {
+    if (!confirm("モックデータをデータベースにインポートしますか？")) return;
+    setIsLoading(true);
+    try {
+        const { seedMockData } = await import("@/lib/seed");
+        const success = await seedMockData(supabase);
+        if (success) {
+            alert("データのインポートが完了しました");
+            fetchTasks();
+        } else {
+            alert("インポートに失敗しました");
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -300,7 +344,6 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative">
         {currentView === "board" ? (
-
           <Board
             board={board}
             setBoard={setBoard}
@@ -310,6 +353,19 @@ export default function Home() {
           />
         ) : (
           <CalendarView board={board} />
+        )}
+        
+        {/* Empty State / Seed Button Helper */}
+        {/* Only show if loading is done, columns are empty (except structure), and we want to offer help */}
+        {!isLoading && board.columns.every(col => col.tasks.length === 0) && (
+             <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-40">
+                <button 
+                    onClick={handleSeedData}
+                    className="bg-white/80 backdrop-blur-sm border border-gray-200 text-gray-600 px-4 py-2 rounded-full shadow-lg hover:bg-white hover:text-blue-600 transition-all text-sm font-medium flex items-center gap-2"
+                >
+                    <span>🌱 サンプルデータを投入</span>
+                </button>
+             </div>
         )}
       </main>
 

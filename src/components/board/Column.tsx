@@ -31,25 +31,40 @@ export function Column({ column, onAddTask, onTaskClick }: ColumnProps) {
         isOver && "ring-2 ring-(--color-accent-primary) ring-opacity-50"
       )}
       style={{
-        backgroundColor: column.color 
-          ? `${column.color}15` // 15 = approx 8% opacity in hex
-          : "rgba(241, 245, 249, 0.5)" // Default fallback
+        borderColor: `${column.color}40`, // Subtle border match
+        backgroundColor: `rgba(255, 255, 255, 0.4)` // Lighter glass background for whole column
       }}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between p-3 border-b border-(--color-border)">
+      <div 
+        className="flex items-center justify-between p-3 border-b"
+        style={{ 
+          backgroundColor: `${column.color}15`, // Header gets the color tint
+          borderColor: `${column.color}20`
+        }}
+      >
         <h3 className="font-bold text-(--color-text-primary) flex items-center gap-2">
-          <span
-            className="w-3 h-3 rounded-full ring-2 ring-(--color-accent-primary)"
-            style={{ backgroundColor: column.color }}
+          {/* Accent Line/Indicator */}
+          <div 
+             className="w-1 h-5 rounded-full"
+             style={{ backgroundColor: column.color }}
           />
           {column.title}
-          <span className="text-xs font-normal text-(--color-text-muted) bg-(--color-bg-secondary) px-2 py-0.5 rounded-full border border-(--color-border)">
+          
+          {/* Styled count badge */}
+          <span 
+            className="text-xs font-bold px-2 py-0.5 rounded-full border"
+            style={{ 
+                backgroundColor: `${column.color}20`,
+                color: column.color, // Text matches color
+                borderColor: `${column.color}30`
+            }}
+          >
             {column.tasks.length}
           </span>
         </h3>
         <button
-          className="p-2 touch-target rounded-md hover:bg-(--color-bg-glass) text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+          className="p-1.5 touch-target rounded-md hover:bg-white/50 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
           aria-label="タスクを追加"
           onClick={() => onAddTask(column.id)}
         >
