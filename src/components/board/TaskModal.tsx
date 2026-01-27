@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { X, Calendar as CalendarIcon, Tag, AlignLeft, AlertCircle, Trash2, User } from "lucide-react";
+import { X, Calendar as CalendarIcon, Tag, AlignLeft, AlertCircle, Trash2, User, ChevronRight } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 
@@ -195,17 +195,19 @@ function TaskForm({
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
                
                {/* Status */}
-               <div className="p-4 flex items-center justify-between">
+               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3 text-gray-700">
-                     <Tag className="w-5 h-5 text-gray-400" />
-                     <span className="text-sm font-medium">ステータス</span>
+                     <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                        <Tag className="w-5 h-5" />
+                     </div>
+                     <span className="text-sm font-bold text-gray-900">ステータス</span>
                   </div>
-                  <div className="relative">
+                  <div className="relative flex items-center">
                      <select
                        name="status"
                        id="status"
                        defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                       className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 cursor-pointer"
+                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
                        style={{ direction: 'rtl' }}
                      >
                        {columns.map((col) => (
@@ -214,63 +216,77 @@ function TaskForm({
                          </option>
                        ))}
                      </select>
-                     {/* Chevron could go here */}
+                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
                   </div>
                </div>
 
                {/* Priority */}
-               <div className="p-4 flex items-center justify-between">
+               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3 text-gray-700">
-                     <AlertCircle className="w-5 h-5 text-gray-400" />
-                     <span className="text-sm font-medium">優先度</span>
+                     <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                        <AlertCircle className="w-5 h-5" />
+                     </div>
+                     <span className="text-sm font-bold text-gray-900">優先度</span>
                   </div>
-                  <select
-                     name="priority"
-                     id="priority"
-                     defaultValue={initialData?.priority || "medium"}
-                     className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 cursor-pointer"
-                     style={{ direction: 'rtl' }}
-                  >
-                     <option value="high">🔥 高 (High)</option>
-                     <option value="medium">⚡ 中 (Medium)</option>
-                     <option value="low">☕ 低 (Low)</option>
-                  </select>
+                  <div className="relative flex items-center">
+                     <select
+                        name="priority"
+                        id="priority"
+                        defaultValue={initialData?.priority || "medium"}
+                        className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 cursor-pointer z-10"
+                        style={{ direction: 'rtl' }}
+                     >
+                        <option value="high">🔥 高 (High)</option>
+                        <option value="medium">⚡ 中 (Medium)</option>
+                        <option value="low">☕ 低 (Low)</option>
+                     </select>
+                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
+                  </div>
                </div>
 
                {/* Due Date */}
-               <div className="p-4 flex items-center justify-between">
+               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3 text-gray-700">
-                     <CalendarIcon className="w-5 h-5 text-gray-400" />
-                     <span className="text-sm font-medium">期限</span>
+                     <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+                        <CalendarIcon className="w-5 h-5" />
+                     </div>
+                     <span className="text-sm font-bold text-gray-900">期限</span>
                   </div>
-                  <input
-                    type="date"
-                    name="dueDate"
-                    defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                    className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 focus:ring-0 font-mono"
-                  />
+                  <div className="relative flex items-center">
+                     <input
+                       type="date"
+                       name="dueDate"
+                       defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
+                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-2 focus:ring-0 font-mono"
+                     />
+                  </div>
                </div>
 
                {/* Assignee */}
-               <div className="p-4 flex items-center justify-between">
+               <div className="p-4 flex items-center justify-between active:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3 text-gray-700">
-                     <User className="w-5 h-5 text-gray-400" />
-                     <span className="text-sm font-medium">担当者</span>
+                     <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <User className="w-5 h-5" />
+                     </div>
+                     <span className="text-sm font-bold text-gray-900">担当者</span>
                   </div>
-                  <select
-                    name="assigneeId"
-                    id="assigneeId"
-                    defaultValue={initialData?.assigneeId || ""}
-                    className="appearance-none bg-transparent text-right font-medium text-gray-900 border-none p-0 pr-6 focus:ring-0 text-ellipsis max-w-[150px]"
-                    style={{ direction: 'rtl' }}
-                  >
-                    <option value="">未設定</option>
-                    {profiles.map((profile) => (
-                      <option key={profile.id} value={profile.id}>
-                        {profile.displayName || profile.email}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative flex items-center">
+                     <select
+                       name="assigneeId"
+                       id="assigneeId"
+                       defaultValue={initialData?.assigneeId || ""}
+                       className="appearance-none bg-transparent text-right font-bold text-gray-700 border-none p-0 pr-8 focus:ring-0 text-ellipsis max-w-[150px] z-10"
+                       style={{ direction: 'rtl' }}
+                     >
+                       <option value="">未設定</option>
+                       {profiles.map((profile) => (
+                         <option key={profile.id} value={profile.id}>
+                           {profile.displayName || profile.email}
+                         </option>
+                       ))}
+                     </select>
+                     <ChevronRight className="w-5 h-5 text-gray-400 absolute right-0 pointer-events-none" />
+                  </div>
                </div>
             </div>
             
