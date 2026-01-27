@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { X, Calendar as CalendarIcon, Tag, AlignLeft, AlertCircle, Trash2, User, ChevronRight } from "lucide-react";
+import { X, Calendar as CalendarIcon, Tag, AlignLeft, AlertCircle, Trash2, User, ChevronDown } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 
@@ -194,87 +194,98 @@ function TaskForm({
             </div>
 
             {/* Properties Section - Pop Grouped List */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                
                {/* Status */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
                   <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
-                        <Tag className="w-5 h-5" />
+                     <div className="p-2.5 bg-blue-100 text-blue-600 rounded-2xl">
+                        <Tag className="w-6 h-6" />
                      </div>
-                     <span className="text-base font-bold text-gray-800">ステータス</span>
+                     <span className="text-lg font-bold text-gray-800">ステータス</span>
                   </div>
-                  <select
-                    name="status"
-                    id="status"
-                    defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                    className="appearance-none bg-gray-100 text-base font-bold text-blue-600 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-blue-200 cursor-pointer text-right min-w-[100px]"
-                  >
-                    {columns.map((col) => (
-                      <option key={col.id} value={col.id}>
-                        {col.title}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="status"
+                      id="status"
+                      defaultValue={initialData?.status || initialStatus || columns[0]?.id}
+                      className="appearance-none bg-blue-50 text-lg font-bold text-blue-700 border-2 border-transparent hover:border-blue-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-blue-300 cursor-pointer min-w-[140px] transition-colors"
+                    >
+                      {columns.map((col) => (
+                        <option key={col.id} value={col.id}>
+                          {col.title}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400 pointer-events-none" />
+                  </div>
                </div>
 
                {/* Priority */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
                   <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
-                        <AlertCircle className="w-5 h-5" />
+                     <div className="p-2.5 bg-amber-100 text-amber-600 rounded-2xl">
+                        <AlertCircle className="w-6 h-6" />
                      </div>
-                     <span className="text-base font-bold text-gray-800">優先度</span>
+                     <span className="text-lg font-bold text-gray-800">優先度</span>
                   </div>
-                  <select
-                     name="priority"
-                     id="priority"
-                     defaultValue={initialData?.priority || "medium"}
-                     className="appearance-none bg-gray-100 text-base font-bold text-amber-600 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-amber-200 cursor-pointer text-right min-w-[80px]"
-                  >
-                     <option value="high">高</option>
-                     <option value="medium">中</option>
-                     <option value="low">低</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                       name="priority"
+                       id="priority"
+                       defaultValue={initialData?.priority || "medium"}
+                       className="appearance-none bg-amber-50 text-lg font-bold text-amber-700 border-2 border-transparent hover:border-amber-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-amber-300 cursor-pointer min-w-[120px] transition-colors"
+                    >
+                       <option value="high">高</option>
+                       <option value="medium">中</option>
+                       <option value="low">低</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 pointer-events-none" />
+                  </div>
                </div>
 
                {/* Due Date */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
                   <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2 bg-red-100 text-red-600 rounded-xl">
-                        <CalendarIcon className="w-5 h-5" />
+                     <div className="p-2.5 bg-red-100 text-red-600 rounded-2xl">
+                        <CalendarIcon className="w-6 h-6" />
                      </div>
-                     <span className="text-base font-bold text-gray-800">期限</span>
+                     <span className="text-lg font-bold text-gray-800">期限</span>
                   </div>
-                  <input
-                    type="date"
-                    name="dueDate"
-                    defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                    className="appearance-none bg-gray-100 text-base font-bold text-gray-800 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-red-200 cursor-pointer"
-                  />
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="dueDate"
+                      defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
+                      className="appearance-none bg-red-50 text-lg font-bold text-red-700 border-2 border-transparent hover:border-red-200 px-4 py-3 rounded-xl focus:ring-0 focus:border-red-300 cursor-pointer min-w-[150px] font-mono transition-colors"
+                    />
+                  </div>
                </div>
 
                {/* Assignee */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.98] transition-all min-h-[64px]">
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
                   <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2 bg-emerald-100 text-emerald-600 rounded-xl">
-                        <User className="w-5 h-5" />
+                     <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-2xl">
+                        <User className="w-6 h-6" />
                      </div>
-                     <span className="text-base font-bold text-gray-800">担当者</span>
+                     <span className="text-lg font-bold text-gray-800">担当者</span>
                   </div>
-                  <select
-                    name="assigneeId"
-                    id="assigneeId"
-                    defaultValue={initialData?.assigneeId || ""}
-                    className="appearance-none bg-gray-100 text-base font-bold text-gray-800 border-none px-4 py-2.5 rounded-xl focus:ring-2 focus:ring-emerald-200 cursor-pointer text-right max-w-[140px] truncate"
-                  >
-                    <option value="">未設定</option>
-                    {profiles.map((profile) => (
-                      <option key={profile.id} value={profile.id}>
-                        {profile.displayName || profile.email}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      name="assigneeId"
+                      id="assigneeId"
+                      defaultValue={initialData?.assigneeId || ""}
+                      className="appearance-none bg-emerald-50 text-lg font-bold text-emerald-700 border-2 border-transparent hover:border-emerald-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-emerald-300 cursor-pointer max-w-[180px] truncate transition-colors"
+                    >
+                      <option value="">(未設定)</option>
+                      {profiles.map((profile) => (
+                        <option key={profile.id} value={profile.id}>
+                          {profile.displayName || profile.email}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 pointer-events-none" />
+                  </div>
                </div>
             </div>
             
