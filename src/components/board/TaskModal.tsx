@@ -46,7 +46,6 @@ export function TaskModal(props: TaskModalProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     setIsMounted(true);
   }, []);
 
@@ -86,12 +85,13 @@ export function TaskModal(props: TaskModalProps) {
     <Drawer.Root open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 max-h-[96vh] flex flex-col rounded-t-[10px] bg-white z-50 outline-none pb-safe-bottom">
-          <div className="p-4 bg-white rounded-t-[10px] flex-1 overflow-y-auto">
-            <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-gray-300 mb-6" />
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 max-h-[96vh] flex flex-col rounded-t-[20px] bg-white z-50 outline-none pb-safe-bottom shadow-2xl">
+           {/* Handle Indicator */}
+          <div className="p-4 bg-white rounded-t-[20px] flex-1 overflow-y-auto">
+            <div className="mx-auto w-16 h-1.5 shrink-0 rounded-full bg-gray-300 mb-8" />
             <div className="max-w-md mx-auto">
-              <Drawer.Title className="font-bold text-lg mb-4 text-center">
-                {props.initialData ? "タスクを編集" : "新しいタスクを追加"}
+              <Drawer.Title className="font-bold text-xl mb-6 text-center text-gray-800">
+                {props.initialData ? "タスクを編集" : "新しいタスクを作成"}
               </Drawer.Title>
               <TaskForm {...props} />
             </div>
@@ -246,7 +246,7 @@ function TaskForm({
               name="assigneeId"
               id="assigneeId"
               defaultValue={initialData?.assigneeId || ""}
-              className="w-full px-3 py-2.5 bg-(--color-bg-primary) border border-(--color-border) rounded-lg focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base"
+              className="w-full px-4 py-3 bg-(--color-bg-primary) border border-(--color-border) rounded-xl focus:outline-none focus:ring-2 focus:ring-(--color-accent-primary)/50 text-base appearance-none"
             >
               <option value="">担当者なし</option>
               {profiles.map((profile) => (
@@ -255,6 +255,7 @@ function TaskForm({
                 </option>
               ))}
             </select>
+            {/* Custom arrow could be added here if needed, but appearance-none is safer for consistent heights */}
           </div>
 
           {/* Footer Actions */}
@@ -267,24 +268,24 @@ function TaskForm({
                     onDelete();
                   }
                 }}
-                className="mr-auto flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-(--color-accent-danger) hover:bg-red-50 rounded-lg transition-colors"
+                className="mr-auto flex items-center justify-center gap-2 px-5 py-3 text-base font-medium text-(--color-accent-danger) bg-red-50 hover:bg-red-100 rounded-xl transition-colors touch-target"
               >
-                <Trash2 className="w-4 h-4" />
-                削除
+                <Trash2 className="w-5 h-5" />
+                <span className="md:inline hidden">削除</span>
               </button>
             )}
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg-hover) rounded-lg transition-colors"
+              className="px-6 py-3 text-base font-medium text-(--color-text-secondary) hover:bg-(--color-bg-hover) rounded-xl transition-colors touch-target"
             >
               キャンセル
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-sm font-medium text-white bg-(--color-accent-primary) hover:bg-blue-600 rounded-lg shadow-md hover:shadow-lg transition-all"
+              className="px-8 py-3 text-base font-bold text-white bg-(--color-accent-primary) hover:bg-blue-600 rounded-xl shadow-lg hover:shadow-xl transition-all touch-target"
             >
-              {initialData ? "保存する" : "追加する"}
+              {initialData ? "保存" : "追加"}
             </button>
           </div>
         </form>

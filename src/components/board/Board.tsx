@@ -244,17 +244,36 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
                ))}
             </div>
 
-            {/* Mobile View: Single Tabbed Column */}
-            <div className="md:hidden p-4 h-full overflow-y-auto">
-               <AnimatePresence mode="wait">
+             {/* Mobile View: Single Tabbed Column */}
+             <div className="md:hidden p-4 h-full overflow-y-auto no-scrollbar">
+               <AnimatePresence mode="wait" custom={board.columns.findIndex(c => c.id === activeTabId)}>
                  {activeColumn && (
                    <motion.div
                      key={activeColumn.id}
-                     initial={{ opacity: 0, x: 10 }}
+                     initial={{ opacity: 0, x: 20 }}
                      animate={{ opacity: 1, x: 0 }}
-                     exit={{ opacity: 0, x: -10 }}
+                     exit={{ opacity: 0, x: -20 }}
                      transition={{ duration: 0.2 }}
-                     className="h-full"
+                     className="h-full touch-pan-y" // Allow vertical scrolling
+                     drag="x"
+                     dragConstraints={{ left: 0, right: 0 }}
+                     dragElastic={0.2}
+                     onDragEnd={(e, { offset }) => {
+                       const swipeThreshold = 50;
+                       if (offset.x < -swipeThreshold) {
+                         // Swipe Left -> Next Tab
+                         const currentIndex = board.columns.findIndex(c => c.id === activeTabId);
+                         if (currentIndex < board.columns.length - 1) {
+                           setActiveTabId(board.columns[currentIndex + 1].id);
+                         }
+                       } else if (offset.x > swipeThreshold) {
+                         // Swipe Right -> Prev Tab
+                         const currentIndex = board.columns.findIndex(c => c.id === activeTabId);
+                         if (currentIndex > 0) {
+                           setActiveTabId(board.columns[currentIndex - 1].id);
+                         }
+                       }
+                     }}
                    >
                      <Column
                        column={activeColumn}
@@ -264,9 +283,9 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
                    </motion.div>
                  )}
                </AnimatePresence>
-            </div>
-         </div>
-      </div>
+             </div>
+          </div>
+       </div>
 
       <DragOverlay>
         {activeTask && <TaskCard task={activeTask} isDragging />}
