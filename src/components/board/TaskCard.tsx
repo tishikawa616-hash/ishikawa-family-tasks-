@@ -41,32 +41,34 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
       style={style}
       onClick={() => onClick?.(task)}
       className={cn(
-        "glass-card p-3 cursor-grab active:cursor-grabbing",
-        "border-l-4",
+        "bg-white p-4 cursor-grab active:cursor-grabbing hover:bg-gray-50",
+        "rounded-[20px] shadow-sm border border-gray-100", // Pop card shape
+        "transition-all duration-200 active:scale-[0.98]", // Bouncy interaction
+        "border-l-[6px]", // Thicker priority accent
         priorityColors[task.priority || "low"],
-        dragging && "opacity-50 scale-105 shadow-lg rotate-2",
-        "group"
+        dragging && "opacity-50 scale-105 shadow-xl rotate-2",
+        "group relative overflow-hidden"
       )}
       {...attributes}
       {...listeners}
     >
-      <div className="flex items-start gap-2">
+      <div className="flex items-start gap-3">
         <GripVertical
-          className="w-4 h-4 text-(--color-text-muted) opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5"
+          className="w-5 h-5 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1"
         />
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-(--color-text-primary) leading-tight">
+          <h4 className="text-lg font-bold text-gray-800 leading-tight mb-1.5">
             {task.title}
           </h4>
           {task.description && (
-            <p className="text-xs text-(--color-text-secondary) mt-1 line-clamp-2">
+            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
               {task.description}
             </p>
           )}
-          <div className="flex flex-wrap items-center gap-2 mt-2">
+          <div className="flex flex-wrap items-center gap-2 mt-auto">
             {task.dueDate && (
-              <span className="inline-flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
-                <Calendar className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
+                <Calendar className="w-3.5 h-3.5" />
                 {new Date(task.dueDate).toLocaleDateString("ja-JP", {
                   month: "short",
                   day: "numeric",
@@ -76,15 +78,15 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
             {task.tags?.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full bg-(--color-bg-glass) text-(--color-text-secondary)"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-50 text-blue-600"
               >
-                <Tag className="w-2.5 h-2.5" />
+                <Tag className="w-3 h-3" />
                 {tag}
               </span>
             ))}
             {task.assignee?.displayName && (
               <div className="ml-auto flex items-center gap-1" title={`担当者: ${task.assignee.displayName}`}>
-                <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold ring-1 ring-white">
+                <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold ring-2 ring-white shadow-sm">
                   {task.assignee.avatarUrl ? (
                      <img src={task.assignee.avatarUrl} alt={task.assignee.displayName} className="w-full h-full rounded-full object-cover" />
                   ) : (
