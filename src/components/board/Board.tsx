@@ -194,31 +194,40 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
     >
       <div className="flex flex-col h-full w-full">
          {/* Mobile Tab Bar */}
-         <div className="flex md:hidden shrink-0 border-b border-gray-200 bg-white/50 backdrop-blur-sm overflow-x-auto no-scrollbar">
-            {board.columns.map((col) => (
+         <div className="flex md:hidden shrink-0 items-center gap-3 px-4 py-3 border-b border-gray-100 bg-white/80 backdrop-blur-md overflow-x-auto no-scrollbar snap-x">
+            {board.columns.map((col) => {
+               const isActive = activeTabId === col.id;
+               // Default colors if not specified
+               const activeColor = col.color || "#3b82f6";
+               
+               return (
                <button
                  key={col.id}
                  onClick={() => setActiveTabId(col.id)}
                  className={cn(
-                   "flex-1 min-w-[30%] px-2 py-3 text-sm font-medium whitespace-nowrap transition-colors relative flex items-center justify-center gap-2",
-                   activeTabId === col.id ? "text-blue-600" : "text-gray-500"
+                   "relative flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 font-bold text-sm whitespace-nowrap snap-center shrink-0",
+                   isActive ? "text-white shadow-lg shadow-blue-500/20 scale-105" : "text-gray-500 hover:bg-gray-50"
                  )}
+                 style={{
+                    backgroundColor: isActive ? activeColor : "transparent",
+                 }}
                >
-                 {col.title}
+                 <span>{col.title}</span>
                  <span className={cn(
-                    "text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100",
-                    activeTabId === col.id ? "bg-blue-100 text-blue-700" : "text-gray-500"
+                    "flex items-center justify-center w-5 h-5 text-[10px] rounded-full",
+                    isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
                  )}>
                     {col.tasks.length}
                  </span>
-                 {activeTabId === col.id && (
+                 {isActive && (
                     <motion.div 
-                        layoutId="activeTab" 
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" 
+                        layoutId="activeTabGlow" 
+                        className="absolute inset-0 rounded-full bg-white/20" 
+                        transition={{ duration: 0.2 }}
                     />
                  )}
                </button>
-            ))}
+            )})}
          </div>
 
          {/* Board Content */}
