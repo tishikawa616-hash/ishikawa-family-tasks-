@@ -15,6 +15,7 @@ interface TaskModalProps {
     status: string; // columnId
     dueDate: string;
     assigneeId: string;
+    tags: string[];
   }) => void;
   onDelete?: () => void;
   columns: Column[];
@@ -41,14 +42,13 @@ function useMediaQuery(query: string) {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export function TaskModal(props: TaskModalProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // eslint-disable-next-line react/no-did-mount-set-state, @typescript-eslint/no-unused-expressions
-    setIsMounted(true);
-  }, []);
+  const isMounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   if (!isMounted) return null;
 
@@ -137,6 +137,12 @@ function TaskForm({
 
     const formData = new FormData(formRef.current);
     
+    // Parse tags from comma-separated string
+    const tagsString = formData.get("tags") as string;
+    const tags = tagsString 
+      ? tagsString.split(",").map(t => t.trim()).filter(Boolean)
+      : [];
+
     onSubmit({
       title: formData.get("title") as string,
       description: formData.get("description") as string,
@@ -144,6 +150,7 @@ function TaskForm({
       status: formData.get("status") as string,
       dueDate: formData.get("dueDate") as string,
       assigneeId: formData.get("assigneeId") as string,
+      tags,
     });
     
     formRef.current.reset();
@@ -284,7 +291,27 @@ function TaskForm({
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 pointer-events-none" />
+                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 pointer-events-none" />
+                  </div>
+               </div>
+
+               {/* Tags */}
+               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
+                  <div className="flex items-center gap-3 shrink-0">
+                     <div className="p-2.5 bg-pink-100 text-pink-600 rounded-2xl">
+                        <Tag className="w-6 h-6" />
+                     </div>
+                     <span className="text-lg font-bold text-gray-800">タグ</span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="tags"
+                      id="tags"
+                      defaultValue={initialData?.tags?.join(", ")}
+                      placeholder="例: 圃場, 測定"
+                      className="w-full bg-pink-50 text-lg font-bold text-pink-700 placeholder:text-pink-300 border-2 border-transparent hover:border-pink-200 px-4 py-3 rounded-xl focus:ring-0 focus:border-pink-300 text-right transition-colors"
+                    />
                   </div>
                </div>
             </div>

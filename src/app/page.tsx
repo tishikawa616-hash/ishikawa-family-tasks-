@@ -184,6 +184,7 @@ export default function Home() {
     status: string;
     dueDate: string;
     assigneeId: string;
+    tags: string[];
   }) => {
     try {
       if (editingTask) {
@@ -197,13 +198,14 @@ export default function Home() {
             status: taskData.status,
             due_date: taskData.dueDate || null,
             assignee_id: taskData.assigneeId || null,
+            tags: taskData.tags,
           })
           .eq("id", editingTask.id);
 
         if (error) throw error;
 
         // Update local state
-        const updatedTask = { ...editingTask, ...taskData, tags: editingTask.tags || [] };
+        const updatedTask = { ...editingTask, ...taskData };
         
         setBoard((prev) => ({
           ...prev,
@@ -233,7 +235,7 @@ export default function Home() {
             status: taskData.status,
             due_date: taskData.dueDate || null, // Handle empty date
             assignee_id: taskData.assigneeId || null,
-            tags: [], 
+            tags: taskData.tags, 
           })
           .select()
           .single();
