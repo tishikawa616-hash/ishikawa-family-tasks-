@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { X, Calendar as CalendarIcon, Tag, AlignLeft, AlertCircle, Trash2, User, ChevronDown } from "lucide-react";
+import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from "react";
+import { X, Calendar as CalendarIcon, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
+import { Drawer } from "vaul";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ interface TaskModalProps {
     title: string;
     description: string;
     priority: "high" | "medium" | "low";
-    status: string; // columnId
+    status: string;
     dueDate: string;
     assigneeId: string;
     tags: string[];
@@ -23,9 +24,6 @@ interface TaskModalProps {
   initialData?: Task;
 }
 
-import { useCallback, useSyncExternalStore } from "react";
-import { Drawer } from "vaul";
-
 function useMediaQuery(query: string) {
   const subscribe = useCallback(
     (callback: () => void) => {
@@ -35,10 +33,8 @@ function useMediaQuery(query: string) {
     },
     [query]
   );
-
   const getSnapshot = () => window.matchMedia(query).matches;
   const getServerSnapshot = () => false;
-
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
@@ -53,50 +49,55 @@ export function TaskModal(props: TaskModalProps) {
   if (!isMounted) return null;
 
   if (isDesktop) {
-     if (!props.isOpen) return null;
-     return (
+    if (!props.isOpen) return null;
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+        onClick={() => props.onClose()}
+      >
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm animate-fade-in"
-          onClick={() => props.onClose()}
+          className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          onClick={(e) => e.stopPropagation()}
         >
-          <div 
-            className="w-full max-w-lg bg-(--color-bg-card) border border-(--color-border) rounded-xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-             <div className="flex items-center justify-between p-4 border-b border-(--color-border) bg-(--color-bg-secondary)/50 shrink-0">
-              <h2 className="text-lg font-bold text-(--color-text-primary)">
-                {props.initialData ? "タスクを編集" : "新しいタスクを追加"}
-              </h2>
-              <button
-                onClick={props.onClose}
-                className="p-2 rounded-full hover:bg-(--color-bg-hover) text-(--color-text-secondary) transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto">
-               <TaskForm {...props} />
-            </div>
+          <div className="flex items-center justify-between px-6 py-5 border-b-2 border-gray-100 bg-gray-50">
+            <h2 className="text-2xl font-black text-gray-800">
+              {props.initialData ? "📝 タスクを編集" : "✨ 新しいタスク"}
+            </h2>
+            <button
+              onClick={props.onClose}
+              className="p-3 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-600 transition-colors"
+              aria-label="閉じる"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <TaskForm {...props} />
           </div>
         </div>
-     );
+      </div>
+    );
   }
 
   return (
     <Drawer.Root open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 max-h-[96vh] flex flex-col rounded-t-[20px] bg-gray-50 z-50 outline-none pb-safe-bottom shadow-2xl">
-           {/* Handle Indicator */}
-          <div className="w-full flex justify-center py-3 bg-white rounded-t-[20px]">
-             <div className="w-16 h-1.5 shrink-0 rounded-full bg-gray-300" />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 max-h-[95vh] flex flex-col rounded-t-[28px] bg-white z-50 outline-none shadow-2xl">
+          {/* Handle */}
+          <div className="w-full flex justify-center pt-4 pb-2">
+            <div className="w-14 h-2 rounded-full bg-gray-300" />
           </div>
           
-          <div className="flex-1 overflow-hidden flex flex-col">
-              <Drawer.Title className="sr-only">
-                {props.initialData ? "タスクを編集" : "新しいタスクを作成"}
-              </Drawer.Title>
-              <TaskForm {...props} />
+          {/* Header */}
+          <div className="px-6 pb-4 border-b-2 border-gray-100">
+            <Drawer.Title className="text-2xl font-black text-gray-800 text-center">
+              {props.initialData ? "📝 編集する" : "✨ 新しいタスク"}
+            </Drawer.Title>
+          </div>
+
+          <div className="flex-1 overflow-y-auto pb-safe-bottom">
+            <TaskForm {...props} />
           </div>
         </Drawer.Content>
       </Drawer.Portal>
@@ -114,18 +115,21 @@ function TaskForm({
 }: TaskModalProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [showDetails, setShowDetails] = useState(!!initialData);
   const supabase = createClient();
 
   useEffect(() => {
     const fetchProfiles = async () => {
       const { data } = await supabase.from("profiles").select("*");
       if (data) {
-        setProfiles(data.map(p => ({
-          id: p.id,
-          email: p.email,
-          displayName: p.display_name,
-          avatarUrl: p.avatar_url,
-        })));
+        setProfiles(
+          data.map((p) => ({
+            id: p.id,
+            email: p.email,
+            displayName: p.display_name,
+            avatarUrl: p.avatar_url,
+          }))
+        );
       }
     };
     fetchProfiles();
@@ -136,11 +140,9 @@ function TaskForm({
     if (!formRef.current) return;
 
     const formData = new FormData(formRef.current);
-    
-    // Parse tags from comma-separated string
     const tagsString = formData.get("tags") as string;
-    const tags = tagsString 
-      ? tagsString.split(",").map(t => t.trim()).filter(Boolean)
+    const tags = tagsString
+      ? tagsString.split(",").map((t) => t.trim()).filter(Boolean)
       : [];
 
     onSubmit({
@@ -152,207 +154,236 @@ function TaskForm({
       assigneeId: formData.get("assigneeId") as string,
       tags,
     });
-    
+
     formRef.current.reset();
     onClose();
   };
 
   return (
-        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col h-full bg-gray-50/50">
-          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
-            
-            {/* Title Section - Pop Card */}
-            <div className="bg-white p-5 rounded-[24px] shadow-sm border-2 border-indigo-100 flex flex-col justify-center active:scale-[0.99] transition-transform duration-200">
-               <label htmlFor="title" className="block text-sm font-bold text-indigo-500 uppercase tracking-widest mb-2">
-                 すること (タイトル) <span className="text-red-500 text-lg">*</span>
-               </label>
-               <input
-                 type="text"
-                 name="title"
-                 id="title"
-                 required
-                 defaultValue={initialData?.title}
-                 placeholder="ここにタスクを書く"
-                 className="w-full text-2xl font-black text-gray-800 placeholder:text-gray-300 border-none p-0 focus:ring-0 bg-transparent leading-tight"
-               />
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col min-h-full">
+      <div className="flex-1 px-5 py-6 space-y-5">
+        
+        {/* ===== タイトル入力（必須・最重要） ===== */}
+        <div className="bg-blue-50 p-6 rounded-3xl border-3 border-blue-200">
+          <label htmlFor="title" className="block text-xl font-black text-blue-700 mb-3">
+            📌 何をする？
+          </label>
+          <input
+            type="text"
+            name="title"
+            id="title"
+            required
+            autoFocus
+            defaultValue={initialData?.title}
+            placeholder="例：畑の水やり"
+            className="w-full text-2xl font-bold text-gray-800 placeholder:text-gray-400 bg-white border-2 border-blue-300 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-200 focus:border-blue-400"
+          />
+        </div>
+
+        {/* ===== 期限（シンプル表示） ===== */}
+        <div className="bg-orange-50 p-5 rounded-3xl border-2 border-orange-200">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-orange-200 rounded-2xl">
+                <CalendarIcon className="w-7 h-7 text-orange-700" />
+              </div>
+              <span className="text-xl font-black text-orange-800">いつまで？</span>
             </div>
+            <input
+              type="date"
+              name="dueDate"
+              defaultValue={
+                initialData?.dueDate
+                  ? new Date(initialData.dueDate).toISOString().split("T")[0]
+                  : ""
+              }
+              className="text-xl font-bold text-orange-700 bg-white border-2 border-orange-300 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-orange-200 focus:border-orange-400 cursor-pointer"
+            />
+          </div>
+        </div>
 
-            {/* Details Section */}
-            <div className="bg-white rounded-[24px] shadow-sm border border-gray-200 overflow-hidden">
-               {/* Description */}
-               <div className="p-5 active:bg-gray-50 transition-colors">
-                  <div className="flex flex-col gap-3">
-                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gray-100 text-gray-600 rounded-xl">
-                           <AlignLeft className="w-6 h-6" />
-                        </div>
-                        <label htmlFor="description" className="text-lg font-bold text-gray-800">メモ・詳細</label>
-                     </div>
-                     <textarea
-                       name="description"
-                       id="description"
-                       rows={4}
-                       defaultValue={initialData?.description}
-                       placeholder="くわしい内容や手順など..."
-                       className="w-full text-lg text-gray-800 placeholder:text-gray-400 border-none p-0 focus:ring-0 bg-transparent resize-none leading-relaxed"
-                     />
-                  </div>
-               </div>
-            </div>
-
-            {/* Properties Section - Pop Grouped List */}
-            <div className="space-y-4">
-               
-               {/* Status */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
-                  <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2.5 bg-blue-100 text-blue-600 rounded-2xl">
-                        <Tag className="w-6 h-6" />
-                     </div>
-                     <span className="text-lg font-bold text-gray-800">ステータス</span>
-                  </div>
-                  <div className="relative">
-                    <select
-                      name="status"
-                      id="status"
-                      defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                      className="appearance-none bg-blue-50 text-base font-bold text-blue-700 border-2 border-transparent hover:border-blue-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-blue-300 cursor-pointer min-w-[130px] text-center transition-colors shadow-sm"
-                    >
-                      {columns.map((col) => (
-                        <option key={col.id} value={col.id}>
-                          {col.title}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
-                  </div>
-               </div>
-
-               {/* Priority */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
-                  <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2.5 bg-amber-100 text-amber-600 rounded-2xl">
-                        <AlertCircle className="w-6 h-6" />
-                     </div>
-                     <span className="text-lg font-bold text-gray-800">優先度</span>
-                  </div>
-                  <div className="relative">
-                    <select
-                       name="priority"
-                       id="priority"
-                       defaultValue={initialData?.priority || "medium"}
-                       className="appearance-none bg-amber-50 text-base font-bold text-amber-700 border-2 border-transparent hover:border-amber-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-amber-300 cursor-pointer min-w-[100px] text-center transition-colors shadow-sm"
-                    >
-                       <option value="high">高</option>
-                       <option value="medium">中</option>
-                       <option value="low">低</option>
-                    </select>
-                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400 pointer-events-none" />
-                  </div>
-               </div>
-
-               {/* Due Date */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
-                  <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2.5 bg-red-100 text-red-600 rounded-2xl">
-                        <CalendarIcon className="w-6 h-6" />
-                     </div>
-                     <span className="text-lg font-bold text-gray-800">期限</span>
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      name="dueDate"
-                      defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                      className="appearance-none bg-red-50 text-base font-bold text-red-700 border-2 border-transparent hover:border-red-200 px-5 py-3.5 rounded-2xl focus:ring-0 focus:border-red-300 cursor-pointer min-w-[160px] text-center font-mono transition-colors shadow-sm"
-                    />
-                  </div>
-               </div>
-
-               {/* Assignee */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
-                  <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-2xl">
-                        <User className="w-6 h-6" />
-                     </div>
-                     <span className="text-lg font-bold text-gray-800">担当者</span>
-                  </div>
-                  <div className="relative">
-                    <select
-                      name="assigneeId"
-                      id="assigneeId"
-                      defaultValue={initialData?.assigneeId || ""}
-                      className="appearance-none bg-emerald-50 text-base font-bold text-emerald-700 border-2 border-transparent hover:border-emerald-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-emerald-300 cursor-pointer max-w-[170px] text-center truncate transition-colors shadow-sm"
-                    >
-                      <option value="">(未設定)</option>
-                      {profiles.map((profile) => (
-                        <option key={profile.id} value={profile.id}>
-                          {profile.displayName || profile.email}
-                        </option>
-                      ))}
-                    </select>
-                   <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400 pointer-events-none" />
-                  </div>
-               </div>
-
-               {/* Tags */}
-               <div className="bg-white px-5 py-4 rounded-[20px] shadow-sm border border-gray-200 flex items-center justify-between gap-4 active:scale-[0.99] transition-all min-h-[72px]">
-                  <div className="flex items-center gap-3 shrink-0">
-                     <div className="p-2.5 bg-pink-100 text-pink-600 rounded-2xl">
-                        <Tag className="w-6 h-6" />
-                     </div>
-                     <span className="text-lg font-bold text-gray-800">タグ</span>
-                  </div>
-                  <div className="relative flex-1 max-w-[200px]">
-                    <input
-                      type="text"
-                      name="tags"
-                      id="tags"
-                      defaultValue={initialData?.tags?.join(", ")}
-                      placeholder="例: 圃場, 測定"
-                      className="w-full bg-pink-50 text-base font-bold text-pink-700 placeholder:text-pink-300 border-2 border-transparent hover:border-pink-200 px-5 py-3.5 rounded-2xl focus:ring-0 focus:border-pink-300 text-center transition-colors shadow-sm"
-                    />
-                  </div>
-               </div>
-            </div>
-            
-            {initialData && onDelete && (
-               <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm("本当にこのタスクを削除しますか？")) {
-                      onDelete();
-                    }
+        {/* ===== ステータス（大きなボタン式） ===== */}
+        <div className="bg-gray-50 p-5 rounded-3xl border-2 border-gray-200">
+          <label className="block text-lg font-black text-gray-700 mb-3">
+            📂 状態
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {columns.map((col) => (
+              <label
+                key={col.id}
+                className="relative cursor-pointer"
+              >
+                <input
+                  type="radio"
+                  name="status"
+                  value={col.id}
+                  defaultChecked={
+                    initialData?.status === col.id ||
+                    (!initialData && (initialStatus === col.id || col.id === columns[0]?.id))
+                  }
+                  className="peer sr-only"
+                />
+                <div
+                  className="p-4 text-center text-lg font-bold rounded-2xl border-3 transition-all
+                    peer-checked:border-blue-500 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:shadow-lg
+                    border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                  style={{
+                    borderColor: col.color ? `${col.color}80` : undefined,
                   }}
-                  className="w-full flex items-center justify-center gap-2 p-5 text-red-500 font-bold text-lg bg-red-50 rounded-[20px] hover:bg-red-100 transition-colors active:scale-95"
-               >
-                  <Trash2 className="w-6 h-6" />
-                  このタスクを削除する
-               </button>
-            )}
-
-            {/* Spacer for bottom safe area/button */}
-            <div className="h-28"></div>
-          </div>
-
-          {/* Sticky Footer Action */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 bg-white/90 backdrop-blur-xl border-t border-gray-200 pb-safe-bottom z-20">
-             <div className="flex gap-4">
-                <button
-                   type="button"
-                   onClick={onClose}
-                   className="flex-1 py-4 text-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors active:scale-95"
                 >
-                   やめる
-                </button>
-                <button
-                   type="submit"
-                   className="flex-[2_2_0%] py-4 text-lg font-bold text-white bg-blue-500 hover:bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/30 transition-all active:scale-95 active:shadow-sm"
-                >
-                   {initialData ? "保存する！" : "追加する！"}
-                </button>
-             </div>
+                  {col.title}
+                </div>
+              </label>
+            ))}
           </div>
-        </form>
-  )
+        </div>
+
+        {/* ===== 詳細設定（折りたたみ） ===== */}
+        <button
+          type="button"
+          onClick={() => setShowDetails(!showDetails)}
+          className="w-full flex items-center justify-center gap-2 py-4 text-lg font-bold text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          {showDetails ? (
+            <>
+              <ChevronUp className="w-5 h-5" />
+              詳細をとじる
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-5 h-5" />
+              もっと詳しく設定する
+            </>
+          )}
+        </button>
+
+        {showDetails && (
+          <div className="space-y-4 animate-fade-in">
+            {/* 優先度 */}
+            <div className="bg-amber-50 p-5 rounded-3xl border-2 border-amber-200">
+              <label className="block text-lg font-black text-amber-700 mb-3">
+                ⚡ 優先度
+              </label>
+              <div className="flex gap-3">
+                {[
+                  { value: "high", label: "🔴 高", color: "red" },
+                  { value: "medium", label: "🟡 中", color: "amber" },
+                  { value: "low", label: "🟢 低", color: "green" },
+                ].map((p) => (
+                  <label key={p.value} className="flex-1 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="priority"
+                      value={p.value}
+                      defaultChecked={
+                        initialData?.priority === p.value ||
+                        (!initialData && p.value === "medium")
+                      }
+                      className="peer sr-only"
+                    />
+                    <div
+                      className={`p-4 text-center text-lg font-bold rounded-2xl border-3 transition-all
+                        peer-checked:border-${p.color}-500 peer-checked:bg-${p.color}-500 peer-checked:text-white peer-checked:shadow-lg
+                        border-gray-300 bg-white text-gray-700 hover:border-gray-400`}
+                    >
+                      {p.label}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* メモ */}
+            <div className="bg-gray-50 p-5 rounded-3xl border-2 border-gray-200">
+              <label htmlFor="description" className="block text-lg font-black text-gray-700 mb-3">
+                📝 メモ
+              </label>
+              <textarea
+                name="description"
+                id="description"
+                rows={3}
+                defaultValue={initialData?.description}
+                placeholder="詳しい内容をここに書く..."
+                className="w-full text-lg text-gray-800 placeholder:text-gray-400 bg-white border-2 border-gray-300 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-gray-200 focus:border-gray-400 resize-none"
+              />
+            </div>
+
+            {/* 担当者 */}
+            <div className="bg-emerald-50 p-5 rounded-3xl border-2 border-emerald-200">
+              <label htmlFor="assigneeId" className="block text-lg font-black text-emerald-700 mb-3">
+                👤 誰がやる？
+              </label>
+              <select
+                name="assigneeId"
+                id="assigneeId"
+                defaultValue={initialData?.assigneeId || ""}
+                className="w-full text-lg font-bold text-emerald-700 bg-white border-2 border-emerald-300 rounded-2xl px-4 py-4 focus:ring-4 focus:ring-emerald-200 focus:border-emerald-400 cursor-pointer"
+              >
+                <option value="">誰でもOK</option>
+                {profiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.displayName || profile.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* タグ */}
+            <div className="bg-pink-50 p-5 rounded-3xl border-2 border-pink-200">
+              <label htmlFor="tags" className="block text-lg font-black text-pink-700 mb-3">
+                🏷️ タグ
+              </label>
+              <input
+                type="text"
+                name="tags"
+                id="tags"
+                defaultValue={initialData?.tags?.join(", ")}
+                placeholder="例：畑, 野菜"
+                className="w-full text-lg font-bold text-pink-700 placeholder:text-pink-300 bg-white border-2 border-pink-300 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-pink-200 focus:border-pink-400"
+              />
+              <p className="text-sm text-pink-500 mt-2">カンマ（,）で区切って入力</p>
+            </div>
+          </div>
+        )}
+
+        {/* 削除ボタン */}
+        {initialData && onDelete && (
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("本当に削除しますか？")) {
+                onDelete();
+              }
+            }}
+            className="w-full flex items-center justify-center gap-3 py-5 text-xl font-bold text-red-600 bg-red-50 border-2 border-red-200 rounded-3xl hover:bg-red-100 transition-colors active:scale-98"
+          >
+            <Trash2 className="w-6 h-6" />
+            🗑️ このタスクを削除
+          </button>
+        )}
+
+        {/* 下部スペーサー */}
+        <div className="h-32" />
+      </div>
+
+      {/* ===== 固定フッター ===== */}
+      <div className="sticky bottom-0 left-0 right-0 p-5 bg-white border-t-2 border-gray-100 shadow-2xl pb-safe-bottom">
+        <div className="flex gap-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-5 text-xl font-black text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors active:scale-95"
+          >
+            ✕ やめる
+          </button>
+          <button
+            type="submit"
+            className="flex-[2] py-5 text-xl font-black text-white bg-blue-500 hover:bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/40 transition-all active:scale-95"
+          >
+            {initialData ? "✓ 保存する" : "＋ 追加する"}
+          </button>
+        </div>
+      </div>
+    </form>
+  );
 }
