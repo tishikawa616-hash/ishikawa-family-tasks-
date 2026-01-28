@@ -80,17 +80,27 @@ export function TaskModal(props: TaskModalProps) {
   }
 
   return (
-    <Drawer.Root open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
+    <Drawer.Root 
+      open={props.isOpen} 
+      onOpenChange={(open) => !open && props.onClose()}
+      snapPoints={[1]}
+      activeSnapPoint={1}
+      setActiveSnapPoint={() => {}}
+      modal={true}
+    >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 h-[98vh] flex flex-col rounded-t-[24px] bg-white z-50 outline-none shadow-2xl">
+        <Drawer.Content 
+          className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-[24px] bg-white z-50 outline-none shadow-2xl"
+          style={{ height: '95vh' }}
+        >
           {/* Handle */}
-          <div className="w-full flex justify-center pt-3 pb-1">
+          <div className="w-full flex justify-center pt-3 pb-1 shrink-0">
             <div className="w-12 h-1.5 rounded-full bg-gray-300" />
           </div>
           
           {/* Header */}
-          <div className="px-4 pb-3 border-b border-gray-100">
+          <div className="px-4 pb-3 border-b border-gray-100 shrink-0">
             <Drawer.Title className="text-xl font-black text-gray-800 text-center">
               {props.initialData ? "📝 編集" : "✨ 追加"}
             </Drawer.Title>
