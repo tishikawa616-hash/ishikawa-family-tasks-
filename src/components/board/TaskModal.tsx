@@ -216,7 +216,7 @@ function TaskForm({
                       name="status"
                       id="status"
                       defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                      className="appearance-none bg-blue-50 text-lg font-bold text-blue-700 border-2 border-transparent hover:border-blue-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-blue-300 cursor-pointer min-w-[140px] transition-colors"
+                      className="appearance-none bg-blue-50 text-base font-bold text-blue-700 border-2 border-transparent hover:border-blue-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-blue-300 cursor-pointer min-w-[130px] text-center transition-colors shadow-sm"
                     >
                       {columns.map((col) => (
                         <option key={col.id} value={col.id}>
@@ -224,7 +224,7 @@ function TaskForm({
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
                   </div>
                </div>
 
@@ -241,13 +241,13 @@ function TaskForm({
                        name="priority"
                        id="priority"
                        defaultValue={initialData?.priority || "medium"}
-                       className="appearance-none bg-amber-50 text-lg font-bold text-amber-700 border-2 border-transparent hover:border-amber-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-amber-300 cursor-pointer min-w-[120px] transition-colors"
+                       className="appearance-none bg-amber-50 text-base font-bold text-amber-700 border-2 border-transparent hover:border-amber-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-amber-300 cursor-pointer min-w-[100px] text-center transition-colors shadow-sm"
                     >
                        <option value="high">高</option>
                        <option value="medium">中</option>
                        <option value="low">低</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400 pointer-events-none" />
                   </div>
                </div>
 
@@ -264,7 +264,7 @@ function TaskForm({
                       type="date"
                       name="dueDate"
                       defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : ""}
-                      className="appearance-none bg-red-50 text-lg font-bold text-red-700 border-2 border-transparent hover:border-red-200 px-4 py-3 rounded-xl focus:ring-0 focus:border-red-300 cursor-pointer min-w-[150px] font-mono transition-colors"
+                      className="appearance-none bg-red-50 text-base font-bold text-red-700 border-2 border-transparent hover:border-red-200 px-5 py-3.5 rounded-2xl focus:ring-0 focus:border-red-300 cursor-pointer min-w-[160px] text-center font-mono transition-colors shadow-sm"
                     />
                   </div>
                </div>
@@ -282,7 +282,7 @@ function TaskForm({
                       name="assigneeId"
                       id="assigneeId"
                       defaultValue={initialData?.assigneeId || ""}
-                      className="appearance-none bg-emerald-50 text-lg font-bold text-emerald-700 border-2 border-transparent hover:border-emerald-200 pl-4 pr-10 py-3 rounded-xl focus:ring-0 focus:border-emerald-300 cursor-pointer max-w-[180px] truncate transition-colors"
+                      className="appearance-none bg-emerald-50 text-base font-bold text-emerald-700 border-2 border-transparent hover:border-emerald-200 pl-5 pr-12 py-3.5 rounded-2xl focus:ring-0 focus:border-emerald-300 cursor-pointer max-w-[170px] text-center truncate transition-colors shadow-sm"
                     >
                       <option value="">(未設定)</option>
                       {profiles.map((profile) => (
@@ -291,7 +291,7 @@ function TaskForm({
                         </option>
                       ))}
                     </select>
-                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400 pointer-events-none" />
+                   <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400 pointer-events-none" />
                   </div>
                </div>
 
@@ -303,14 +303,14 @@ function TaskForm({
                      </div>
                      <span className="text-lg font-bold text-gray-800">タグ</span>
                   </div>
-                  <div className="relative">
+                  <div className="relative flex-1 max-w-[200px]">
                     <input
                       type="text"
                       name="tags"
                       id="tags"
                       defaultValue={initialData?.tags?.join(", ")}
                       placeholder="例: 圃場, 測定"
-                      className="w-full bg-pink-50 text-lg font-bold text-pink-700 placeholder:text-pink-300 border-2 border-transparent hover:border-pink-200 px-4 py-3 rounded-xl focus:ring-0 focus:border-pink-300 text-right transition-colors"
+                      className="w-full bg-pink-50 text-base font-bold text-pink-700 placeholder:text-pink-300 border-2 border-transparent hover:border-pink-200 px-5 py-3.5 rounded-2xl focus:ring-0 focus:border-pink-300 text-center transition-colors shadow-sm"
                     />
                   </div>
                </div>
