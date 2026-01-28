@@ -56,7 +56,7 @@ export function TaskModal(props: TaskModalProps) {
         onClick={() => props.onClose()}
       >
         <div
-          className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          className="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-6 py-5 border-b-2 border-gray-100 bg-gray-50">
@@ -83,16 +83,16 @@ export function TaskModal(props: TaskModalProps) {
     <Drawer.Root open={props.isOpen} onOpenChange={(open) => !open && props.onClose()}>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-black/50" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 max-h-[95vh] flex flex-col rounded-t-[28px] bg-white z-50 outline-none shadow-2xl">
+        <Drawer.Content className="fixed bottom-0 left-0 right-0 h-[98vh] flex flex-col rounded-t-[24px] bg-white z-50 outline-none shadow-2xl">
           {/* Handle */}
-          <div className="w-full flex justify-center pt-4 pb-2">
-            <div className="w-14 h-2 rounded-full bg-gray-300" />
+          <div className="w-full flex justify-center pt-3 pb-1">
+            <div className="w-12 h-1.5 rounded-full bg-gray-300" />
           </div>
           
           {/* Header */}
-          <div className="px-6 pb-4 border-b-2 border-gray-100">
-            <Drawer.Title className="text-2xl font-black text-gray-800 text-center">
-              {props.initialData ? "📝 編集する" : "✨ 新しいタスク"}
+          <div className="px-4 pb-3 border-b border-gray-100">
+            <Drawer.Title className="text-xl font-black text-gray-800 text-center">
+              {props.initialData ? "📝 編集" : "✨ 追加"}
             </Drawer.Title>
           </div>
 
@@ -161,11 +161,11 @@ function TaskForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col min-h-full">
-      <div className="flex-1 px-5 py-6 space-y-5">
+      <div className="flex-1 px-4 py-4 space-y-4">
         
         {/* ===== タイトル入力（必須・最重要） ===== */}
-        <div className="bg-blue-50 p-6 rounded-3xl border-3 border-blue-200">
-          <label htmlFor="title" className="block text-xl font-black text-blue-700 mb-3">
+        <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-200">
+          <label htmlFor="title" className="block text-lg font-black text-blue-700 mb-2">
             📌 何をする？
           </label>
           <input
@@ -176,18 +176,18 @@ function TaskForm({
             autoFocus
             defaultValue={initialData?.title}
             placeholder="例：畑の水やり"
-            className="w-full text-2xl font-bold text-gray-800 placeholder:text-gray-400 bg-white border-2 border-blue-300 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-200 focus:border-blue-400"
+            className="w-full text-xl font-bold text-gray-800 placeholder:text-gray-400 bg-white border-2 border-blue-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
           />
         </div>
 
         {/* ===== 期限（シンプル表示） ===== */}
-        <div className="bg-orange-50 p-5 rounded-3xl border-2 border-orange-200">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-orange-200 rounded-2xl">
-                <CalendarIcon className="w-7 h-7 text-orange-700" />
+        <div className="bg-orange-50 p-4 rounded-2xl border-2 border-orange-200">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-orange-200 rounded-xl">
+                <CalendarIcon className="w-6 h-6 text-orange-700" />
               </div>
-              <span className="text-xl font-black text-orange-800">いつまで？</span>
+              <span className="text-lg font-black text-orange-800">いつまで？</span>
             </div>
             <input
               type="date"
@@ -197,17 +197,17 @@ function TaskForm({
                   ? new Date(initialData.dueDate).toISOString().split("T")[0]
                   : ""
               }
-              className="text-xl font-bold text-orange-700 bg-white border-2 border-orange-300 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-orange-200 focus:border-orange-400 cursor-pointer"
+              className="text-lg font-bold text-orange-700 bg-white border-2 border-orange-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-orange-200 focus:border-orange-400 cursor-pointer"
             />
           </div>
         </div>
 
         {/* ===== ステータス（大きなボタン式） ===== */}
-        <div className="bg-gray-50 p-5 rounded-3xl border-2 border-gray-200">
-          <label className="block text-lg font-black text-gray-700 mb-3">
+        <div className="bg-gray-50 p-4 rounded-2xl border-2 border-gray-200">
+          <label className="block text-base font-black text-gray-700 mb-2">
             📂 状態
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             {columns.map((col) => (
               <label
                 key={col.id}
@@ -372,15 +372,15 @@ function TaskForm({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-5 text-xl font-black text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors active:scale-95"
+            className="flex-1 py-4 text-lg font-black text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors active:scale-95"
           >
             ✕ やめる
           </button>
           <button
             type="submit"
-            className="flex-[2] py-5 text-xl font-black text-white bg-blue-500 hover:bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/40 transition-all active:scale-95"
+            className="flex-2 py-4 text-lg font-black text-white bg-blue-500 hover:bg-blue-600 rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95"
           >
-            {initialData ? "✓ 保存する" : "＋ 追加する"}
+            {initialData ? "✓ 保存" : "＋ 追加"}
           </button>
         </div>
       </div>
