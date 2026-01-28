@@ -52,20 +52,20 @@ export function TaskModal(props: TaskModalProps) {
     if (!props.isOpen) return null;
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30"
+        className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
         onClick={() => props.onClose()}
       >
         <div
-          className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900">
+          <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-blue-500 to-indigo-600">
+            <h2 className="text-xl font-bold text-white">
               {props.initialData ? "タスクを編集" : "新しいタスク"}
             </h2>
             <button
               onClick={props.onClose}
-              className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -85,18 +85,22 @@ export function TaskModal(props: TaskModalProps) {
       setActiveSnapPoint={() => {}}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40" />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
         <Drawer.Content 
-          className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-2xl bg-white z-50"
-          style={{ height: '90vh' }}
+          className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-3xl bg-gray-50 z-50"
+          style={{ height: '92vh' }}
         >
-          <div className="w-full flex justify-center py-3 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-gray-300" />
+          {/* Handle */}
+          <div className="w-full flex justify-center py-4 bg-white rounded-t-3xl shrink-0">
+            <div className="w-12 h-1.5 rounded-full bg-gray-300" />
           </div>
           
-          <Drawer.Title className="sr-only">
-            {props.initialData ? "タスクを編集" : "新しいタスク"}
-          </Drawer.Title>
+          {/* Header */}
+          <div className="px-6 pb-4 bg-white shrink-0">
+            <Drawer.Title className="text-2xl font-bold text-gray-900 text-center">
+              {props.initialData ? "タスクを編集" : "新しいタスク"}
+            </Drawer.Title>
+          </div>
 
           <TaskForm {...props} />
         </Drawer.Content>
@@ -156,11 +160,11 @@ function TaskForm({
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         
-        {/* タイトル */}
-        <div>
-          <label htmlFor="title" className="block text-sm font-semibold text-gray-600 mb-2">
+        {/* タイトル - カードスタイル */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <label htmlFor="title" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             タスク名 <span className="text-red-500">*</span>
           </label>
           <input
@@ -171,16 +175,16 @@ function TaskForm({
             autoFocus
             defaultValue={initialData?.title}
             placeholder="何をしますか？"
-            className="w-full text-lg font-medium text-gray-900 placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all"
+            className="w-full text-xl font-semibold text-gray-900 placeholder:text-gray-300 bg-transparent border-0 border-b-2 border-gray-200 px-0 py-3 focus:ring-0 focus:border-blue-500 transition-colors"
           />
         </div>
 
-        {/* ステータス */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">
+        {/* ステータス - カードスタイル */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
             状態
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {columns.map((col) => (
               <label key={col.id} className="cursor-pointer">
                 <input
@@ -193,9 +197,9 @@ function TaskForm({
                   }
                   className="peer sr-only"
                 />
-                <span className="block px-4 py-2 text-sm font-medium rounded-full border-2 transition-all
-                  peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500
-                  border-gray-200 text-gray-600 hover:border-gray-300">
+                <span className="flex items-center justify-center px-4 py-4 text-base font-semibold rounded-xl border-2 transition-all
+                  peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 peer-checked:shadow-lg peer-checked:shadow-blue-500/25
+                  border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50">
                   {col.title}
                 </span>
               </label>
@@ -203,9 +207,9 @@ function TaskForm({
           </div>
         </div>
 
-        {/* 期限 */}
-        <div>
-          <label htmlFor="dueDate" className="block text-sm font-semibold text-gray-600 mb-2">
+        {/* 期限 - カードスタイル */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <label htmlFor="dueDate" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             期限
           </label>
           <input
@@ -217,22 +221,22 @@ function TaskForm({
                 ? new Date(initialData.dueDate).toISOString().split("T")[0]
                 : ""
             }
-            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all"
+            className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
           />
         </div>
 
-        {/* 優先度 */}
-        <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-2">
+        {/* 優先度 - カードスタイル */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
             優先度
           </label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {[
-              { value: "high", label: "高", color: "red" },
-              { value: "medium", label: "中", color: "amber" },
-              { value: "low", label: "低", color: "green" },
+              { value: "high", label: "高", bgClass: "peer-checked:bg-red-500 peer-checked:border-red-500 peer-checked:shadow-red-500/25 hover:border-red-300 hover:bg-red-50" },
+              { value: "medium", label: "中", bgClass: "peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:shadow-amber-500/25 hover:border-amber-300 hover:bg-amber-50" },
+              { value: "low", label: "低", bgClass: "peer-checked:bg-green-500 peer-checked:border-green-500 peer-checked:shadow-green-500/25 hover:border-green-300 hover:bg-green-50" },
             ].map((p) => (
-              <label key={p.value} className="flex-1 cursor-pointer">
+              <label key={p.value} className="cursor-pointer">
                 <input
                   type="radio"
                   name="priority"
@@ -243,9 +247,9 @@ function TaskForm({
                   }
                   className="peer sr-only"
                 />
-                <span className={`block text-center px-3 py-2 text-sm font-medium rounded-xl border-2 transition-all
-                  peer-checked:bg-${p.color}-500 peer-checked:text-white peer-checked:border-${p.color}-500
-                  border-gray-200 text-gray-600 hover:border-gray-300`}>
+                <span className={`flex items-center justify-center px-4 py-4 text-base font-bold rounded-xl border-2 transition-all
+                  peer-checked:text-white peer-checked:shadow-lg ${p.bgClass}
+                  border-gray-200 text-gray-600`}>
                   {p.label}
                 </span>
               </label>
@@ -253,17 +257,17 @@ function TaskForm({
           </div>
         </div>
 
-        {/* 担当者 */}
+        {/* 担当者 - カードスタイル */}
         {profiles.length > 0 && (
-          <div>
-            <label htmlFor="assigneeId" className="block text-sm font-semibold text-gray-600 mb-2">
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <label htmlFor="assigneeId" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
               担当者
             </label>
             <select
               name="assigneeId"
               id="assigneeId"
               defaultValue={initialData?.assigneeId || ""}
-              className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all"
+              className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
             >
               <option value="">指定なし</option>
               {profiles.map((profile) => (
@@ -275,18 +279,18 @@ function TaskForm({
           </div>
         )}
 
-        {/* メモ */}
-        <div>
-          <label htmlFor="description" className="block text-sm font-semibold text-gray-600 mb-2">
+        {/* メモ - カードスタイル */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <label htmlFor="description" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             メモ
           </label>
           <textarea
             name="description"
             id="description"
-            rows={3}
+            rows={4}
             defaultValue={initialData?.description}
             placeholder="詳細やメモを入力..."
-            className="w-full text-base text-gray-900 placeholder:text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white transition-all resize-none"
+            className="w-full text-base text-gray-900 placeholder:text-gray-400 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all resize-none"
           />
         </div>
 
@@ -299,29 +303,32 @@ function TaskForm({
                 onDelete();
               }
             }}
-            className="w-full flex items-center justify-center gap-2 py-3 text-red-600 font-medium hover:bg-red-50 rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-4 text-red-500 font-semibold bg-red-50 hover:bg-red-100 rounded-2xl transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
-            削除する
+            <Trash2 className="w-5 h-5" />
+            このタスクを削除
           </button>
         )}
+
+        {/* 下部スペーサー */}
+        <div className="h-24" />
       </div>
 
-      {/* フッター */}
-      <div className="shrink-0 px-5 py-4 bg-gray-50 border-t border-gray-100 pb-safe-bottom">
+      {/* フッター - フローティングスタイル */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe-bottom shadow-2xl shadow-black/5">
         <div className="flex gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 text-base font-semibold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 py-4 text-base font-bold text-gray-600 bg-gray-100 rounded-2xl hover:bg-gray-200 active:scale-98 transition-all"
           >
             キャンセル
           </button>
           <button
             type="submit"
-            className="flex-2 py-3 text-base font-semibold text-white bg-blue-500 rounded-xl hover:bg-blue-600 shadow-sm transition-all"
+            className="flex-2 py-4 text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 active:scale-98 transition-all"
           >
-            {initialData ? "保存" : "追加"}
+            {initialData ? "保存する" : "追加する"}
           </button>
         </div>
       </div>
