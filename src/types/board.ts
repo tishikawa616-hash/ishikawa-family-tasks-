@@ -10,8 +10,15 @@ export interface Task {
     displayName: string;
     avatarUrl?: string;
   };
-  assigneeId?: string; // For saving to DB
+  assigneeId?: string;
   tags?: string[];
+  fieldId?: string;
+  fieldName?: string;
+  fieldColor?: string;
+  recurrenceType?: "none" | "daily" | "weekly" | "monthly";
+  recurrenceInterval?: number;
+  recurrenceEndDate?: string;
+  parentTaskId?: string;
 }
 
 export interface Column {
