@@ -1,13 +1,15 @@
 "use client";
 import { cn } from "@/lib/utils";
 
-import { useState, useEffect, useCallback } from "react";
-import { LayoutGrid, Calendar as CalendarIcon, Search, Bell, LogOut } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
 import { BottomNav } from "@/components/layout/BottomNav";
 import type { Board as BoardType, Task, Column } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { WeatherWidget } from "@/components/weather/WeatherWidget";
+import { Field } from "@/types/field";
 
 const INITIAL_COLUMNS: Column[] = [
   { id: "col-todo", title: "予定", tasks: [], color: "#0ea5e9" }, // Sky-500
@@ -26,14 +28,36 @@ export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  // Field Filter State
+  const [fields, setFields] = useState<Field[]>([]);
+  const [selectedFieldId, setSelectedFieldId] = useState<string | "all">("all");
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
   };
 
+  // Fetch Fields
+  useEffect(() => {
+    const fetchFields = async () => {
+      const { data } = await supabase.from("fields").select("*").order("name");
+      if (data) {
+        setFields(data.map(f => ({
+            id: f.id,
+            name: f.name,
+            color: f.color,
+            location: f.location,
+            description: f.description
+        })));
+      }
+    };
+    fetchFields();
+  }, [supabase]);
+
   const fetchTasks = useCallback(async () => {
     try {
+      // Need to select field_id as well
       const { data: tasks, error } = await supabase
         .from("tasks")
         .select(`
@@ -68,6 +92,8 @@ export default function Home() {
                   dueDate: t.due_date,
                   tags: t.tags || [],
                   assigneeId: t.assignee_id,
+                  // Map field_id to fieldId
+                  fieldId: t.field_id,
                   assignee: assigneeData ? {
                     id: assigneeData.id,
                     displayName: assigneeData.display_name || assigneeData.email,
@@ -185,6 +211,7 @@ export default function Home() {
     dueDate: string;
     assigneeId: string;
     tags: string[];
+    fieldId?: string;
   }) => {
     try {
       if (editingTask) {
@@ -199,34 +226,18 @@ export default function Home() {
             due_date: taskData.dueDate || null,
             assignee_id: taskData.assigneeId || null,
             tags: taskData.tags,
+            field_id: taskData.fieldId || null,
           })
           .eq("id", editingTask.id);
 
         if (error) throw error;
 
-        // Update local state
-        const updatedTask = { ...editingTask, ...taskData };
-        
-        setBoard((prev) => ({
-          ...prev,
-          columns: prev.columns.map((col) => {
-            // Remove from old column if status changed (or just filter out to be safe)
-            // Then add to new column (or update in place if same)
-            
-            // Simplified approach: Remove from all columns, then add to target column
-            const cleanTasks = col.tasks.filter(t => t.id !== editingTask.id);
-            
-            if (col.id === taskData.status) {
-                // Determine insertion (append for now, or maintain order if we cared more)
-                return { ...col, tasks: [...cleanTasks, updatedTask] };
-            }
-            return { ...col, tasks: cleanTasks };
-          }),
-        }));
+        // Update local state - re-fetch is safer for consistency but let's do simple update
+        fetchTasks(); 
 
       } else {
         // Create new task
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from("tasks")
           .insert({
             title: taskData.title,
@@ -236,41 +247,32 @@ export default function Home() {
             due_date: taskData.dueDate || null, // Handle empty date
             assignee_id: taskData.assigneeId || null,
             tags: taskData.tags, 
-          })
-          .select()
-          .single();
+            field_id: taskData.fieldId || null,
+          });
 
         if (error) throw error;
-
-        if (data) {
-          const newTask: Task = {
-            id: data.id,
-            title: data.title,
-            description: data.description,
-            priority: data.priority,
-            dueDate: data.due_date,
-            tags: data.tags || [],
-          };
-
-          setBoard((prev) => ({
-            ...prev,
-            columns: prev.columns.map((col) => {
-              if (col.id === taskData.status) {
-                return {
-                  ...col,
-                  tasks: [...col.tasks, newTask],
-                };
-              }
-              return col;
-            }),
-          }));
-        }
+        
+        fetchTasks();
       }
+      setIsModalOpen(false);
     } catch (err) {
       console.error("Error saving task:", err);
       alert("タスクの保存に失敗しました。");
     }
   };
+
+  // Filter Board Columns based on Selected Field
+  const filteredBoard = useMemo(() => {
+      if (selectedFieldId === "all") return board;
+
+      return {
+          ...board,
+          columns: board.columns.map(col => ({
+              ...col,
+              tasks: col.tasks.filter(t => t.fieldId === selectedFieldId)
+          }))
+      };
+  }, [board, selectedFieldId]);
 
   return (
     <div className="min-h-screen flex flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
@@ -317,6 +319,23 @@ export default function Home() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 ml-auto">
+          {/* Field Filter Dropdown */}
+          <div className="relative group">
+             <div className="flex items-center gap-2 bg-(--color-bg-secondary) rounded-lg px-3 py-1.5 cursor-pointer hover:bg-gray-200 transition-colors">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <select
+                    value={selectedFieldId}
+                    onChange={(e) => setSelectedFieldId(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm text-(--color-text-primary) cursor-pointer appearance-none pr-4"
+                >
+                    <option value="all">すべての圃場</option>
+                    {fields.map(field => (
+                        <option key={field.id} value={field.id}>{field.name}</option>
+                    ))}
+                </select>
+             </div>
+          </div>
+
           <div className="hidden md:flex items-center gap-2 bg-(--color-bg-secondary) rounded-lg px-3 py-1.5 w-64 mr-2 border border-transparent focus-within:border-(--color-accent-primary) transition-colors">
             <Search className="w-4 h-4 text-(--color-text-muted)" />
             <input
@@ -325,12 +344,7 @@ export default function Home() {
               className="bg-transparent border-none outline-none text-sm text-(--color-text-primary) placeholder:text-(--color-text-muted) w-full"
             />
           </div>
-          <button
-            className="relative p-2 rounded-xl text-(--color-text-muted) hover:text-(--color-text-secondary) hover:bg-(--color-bg-secondary) transition-colors"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-(--color-accent-danger) rounded-full border-2 border-white" />
-          </button>
+          
           <button
             onClick={handleLogout}
             className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"
@@ -345,17 +359,24 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative pb-20 md:pb-0">
+      <main className="flex-1 overflow-hidden relative pb-20 md:pb-0 flex flex-col">
+        {/* Weather Widget Section */}
+        {currentView === "board" && (
+            <div className="px-4 pt-4 md:px-6 shrink-0">
+                <WeatherWidget />
+            </div>
+        )}
+
         {currentView === "board" ? (
           <Board
-            board={board}
+            board={filteredBoard}
             setBoard={setBoard}
             onAddTask={openAddTaskModal}
             onTaskMove={handleTaskMoved}
             onTaskClick={handleTaskClick}
           />
         ) : (
-          <CalendarView board={board} />
+          <CalendarView board={filteredBoard} />
         )}
         
         {/* Empty State / Seed Button Helper */}

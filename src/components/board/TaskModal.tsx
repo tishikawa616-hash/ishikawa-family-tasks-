@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from "react";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Shovel, FileText } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { Drawer } from "vaul";
+import { Field } from "@/types/field";
+import { TaskComments } from "./TaskComments";
+import { WorkLogModal } from "./WorkLogModal";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -17,6 +20,7 @@ interface TaskModalProps {
     dueDate: string;
     assigneeId: string;
     tags: string[];
+    fieldId?: string;
   }) => void;
   onDelete?: () => void;
   columns: Column[];
@@ -56,10 +60,10 @@ export function TaskModal(props: TaskModalProps) {
         onClick={() => props.onClose()}
       >
         <div
-          className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-blue-500 to-indigo-600">
+          <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 shrink-0">
             <h2 className="text-xl font-bold text-white">
               {props.initialData ? "タスクを編集" : "新しいタスク"}
             </h2>
@@ -83,9 +87,10 @@ export function TaskModal(props: TaskModalProps) {
       snapPoints={[1]}
       activeSnapPoint={1}
       setActiveSnapPoint={() => {}}
+      dismissible={false} // Prevent accidental close on drag
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={props.onClose} />
         <Drawer.Content 
           className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-3xl bg-gray-50 z-50"
           style={{ height: '92vh' }}
@@ -96,10 +101,13 @@ export function TaskModal(props: TaskModalProps) {
           </div>
           
           {/* Header */}
-          <div className="px-6 pb-4 bg-white shrink-0">
-            <Drawer.Title className="text-2xl font-bold text-gray-900 text-center">
+          <div className="px-6 pb-4 bg-white shrink-0 flex justify-between items-center">
+            <Drawer.Title className="text-2xl font-bold text-gray-900">
               {props.initialData ? "タスクを編集" : "新しいタスク"}
             </Drawer.Title>
+            <button onClick={props.onClose} className="p-2 bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-gray-500" />
+            </button>
           </div>
 
           <TaskForm {...props} />
@@ -119,14 +127,16 @@ function TaskForm({
 }: TaskModalProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [fields, setFields] = useState<Field[]>([]);
+  const [isWorkLogOpen, setIsWorkLogOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      const { data } = await supabase.from("profiles").select("*");
-      if (data) {
+    const fetchData = async () => {
+      const { data: profilesData } = await supabase.from("profiles").select("*");
+      if (profilesData) {
         setProfiles(
-          data.map((p) => ({
+          profilesData.map((p) => ({
             id: p.id,
             email: p.email,
             displayName: p.display_name,
@@ -134,8 +144,17 @@ function TaskForm({
           }))
         );
       }
+
+      const { data: fieldsData } = await supabase.from("fields").select("*").order("name");
+      if (fieldsData) {
+        setFields(fieldsData.map(f => ({
+            id: f.id,
+            name: f.name,
+            color: f.color
+        })));
+      }
     };
-    fetchProfiles();
+    fetchData();
   }, [supabase]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -151,14 +170,17 @@ function TaskForm({
       status: formData.get("status") as string,
       dueDate: formData.get("dueDate") as string,
       assigneeId: formData.get("assigneeId") as string,
+      fieldId: formData.get("fieldId") as string,
       tags: [],
     });
 
-    formRef.current.reset();
-    onClose();
+    // Don't close immediately here to allow further edits if needed, 
+    // but the parent usually handles close.
+    // formRef.current.reset(); // Don't reset if we are just calling onSubmit which likely closes modal
   };
 
   return (
+    <>
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         
@@ -178,6 +200,33 @@ function TaskForm({
             className="w-full text-xl font-semibold text-gray-900 placeholder:text-gray-300 bg-transparent border-0 border-b-2 border-gray-200 px-0 py-3 focus:ring-0 focus:border-blue-500 transition-colors"
           />
         </div>
+
+        {/* 圃場選択 - カードスタイル */}
+        {fields.length > 0 && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <label htmlFor="fieldId" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+               <Shovel className="w-4 h-4" /> 圃場 (畑)
+            </label>
+            <div className="relative">
+                <select
+                name="fieldId"
+                id="fieldId"
+                defaultValue={initialData?.fieldId || ""}
+                className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                >
+                <option value="">指定なし</option>
+                {fields.map((field) => (
+                    <option key={field.id} value={field.id}>
+                    {field.name}
+                    </option>
+                ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    ▼
+                </div>
+            </div>
+          </div>
+        )}
 
         {/* ステータス - カードスタイル */}
         <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -263,19 +312,24 @@ function TaskForm({
             <label htmlFor="assigneeId" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
               担当者
             </label>
-            <select
-              name="assigneeId"
-              id="assigneeId"
-              defaultValue={initialData?.assigneeId || ""}
-              className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
-            >
-              <option value="">指定なし</option>
-              {profiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>
-                  {profile.displayName || profile.email}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+                <select
+                name="assigneeId"
+                id="assigneeId"
+                defaultValue={initialData?.assigneeId || ""}
+                className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                >
+                <option value="">指定なし</option>
+                {profiles.map((profile) => (
+                    <option key={profile.id} value={profile.id}>
+                    {profile.displayName || profile.email}
+                    </option>
+                ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                    ▼
+                </div>
+            </div>
           </div>
         )}
 
@@ -293,6 +347,32 @@ function TaskForm({
             className="w-full text-base text-gray-900 placeholder:text-gray-400 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all resize-none"
           />
         </div>
+
+        {/* Work Log Button & Comments (Only for existing tasks) */}
+        {initialData && (
+            <>
+                {/* Work Log Button */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm">
+                    <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+                        作業記録
+                    </label>
+                    <button
+                        type="button"
+                        onClick={() => setIsWorkLogOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-50 text-emerald-600 font-bold rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-100"
+                    >
+                        <FileText className="w-5 h-5" />
+                        作業記録を追加・表示
+                    </button>
+                    <p className="text-xs text-gray-400 mt-2 text-center">
+                        写真付きで日報を作成できます
+                    </p>
+                </div>
+
+                {/* Comments */}
+                <TaskComments taskId={initialData.id} />
+            </>
+        )}
 
         {/* 削除ボタン */}
         {initialData && onDelete && (
@@ -315,7 +395,7 @@ function TaskForm({
       </div>
 
       {/* フッター - フローティングスタイル */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 py-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe-bottom shadow-2xl shadow-black/5">
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe-bottom shadow-2xl shadow-black/5 shrink-0 z-10">
         <div className="flex gap-3">
           <button
             type="button"
@@ -333,5 +413,15 @@ function TaskForm({
         </div>
       </div>
     </form>
+
+    {initialData && (
+        <WorkLogModal 
+            isOpen={isWorkLogOpen} 
+            onClose={() => setIsWorkLogOpen(false)} 
+            taskId={initialData.id}
+            taskTitle={initialData.title}
+        />
+    )}
+    </>
   );
 }
