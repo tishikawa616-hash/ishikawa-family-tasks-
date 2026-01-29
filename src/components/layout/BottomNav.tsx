@@ -1,50 +1,70 @@
 "use client";
 
-import { LayoutGrid, Calendar, Bell, MapPin } from "lucide-react";
+import { LayoutGrid, Calendar, MapPin, PieChart, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface BottomNavProps {
-  currentView: "board" | "calendar" | "fields";
-  onChangeView: (view: "board" | "calendar") => void;
+  currentView?: "board" | "calendar";
+  onChangeView?: (view: "board" | "calendar") => void;
 }
 
 export function BottomNav({ currentView, onChangeView }: BottomNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const isHome = pathname === "/";
+  const isBoard = isHome && currentView === "board";
+  const isCalendar = isHome && currentView === "calendar";
+  const isFields = pathname === "/fields";
+  const isReports = pathname === "/reports";
+  const isLogs = pathname === "/logs";
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-xl border-t border-gray-200 z-40 pb-safe-bottom">
-      <div className="grid grid-cols-4 h-full">
+      <div className="grid grid-cols-5 h-full">
         {/* Board Tab */}
         <button
-          onClick={() => onChangeView("board")}
+          onClick={() => {
+            if (isHome && onChangeView) {
+                onChangeView("board");
+            } else {
+                router.push("/?view=board");
+            }
+          }}
           className={cn(
             "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
-            currentView === "board"
+            isBoard
               ? "text-blue-600 font-bold"
               : "text-gray-400 hover:text-gray-600 font-medium"
           )}
         >
-          <div className={cn("p-1.5 rounded-xl transition-colors", currentView === "board" ? "bg-blue-50" : "")}>
-             <LayoutGrid className={cn("w-7 h-7", currentView === "board" && "fill-blue-100")} />
+          <div className={cn("p-1.5 rounded-xl transition-colors", isBoard ? "bg-blue-50" : "")}>
+             <LayoutGrid className={cn("w-6 h-6", isBoard && "fill-blue-100")} />
           </div>
-          <span className="text-xs tracking-tight">ボード</span>
+          <span className="text-[10px] tracking-tight">ボード</span>
         </button>
 
         {/* Calendar Tab */}
         <button
-          onClick={() => onChangeView("calendar")}
+          onClick={() => {
+            if (isHome && onChangeView) {
+                onChangeView("calendar");
+            } else {
+                router.push("/?view=calendar");
+            }
+          }}
           className={cn(
             "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
-            currentView === "calendar"
+            isCalendar
               ? "text-blue-600 font-bold"
               : "text-gray-400 hover:text-gray-600 font-medium"
           )}
         >
-          <div className={cn("p-1.5 rounded-xl transition-colors", currentView === "calendar" ? "bg-blue-50" : "")}>
-             <Calendar className={cn("w-7 h-7", currentView === "calendar" && "fill-blue-100")} />
+          <div className={cn("p-1.5 rounded-xl transition-colors", isCalendar ? "bg-blue-50" : "")}>
+             <Calendar className={cn("w-6 h-6", isCalendar && "fill-blue-100")} />
           </div>
-          <span className="text-xs tracking-tight">カレンダー</span>
+          <span className="text-[10px] tracking-tight">予定</span>
         </button>
 
         {/* Fields Tab */}
@@ -52,27 +72,47 @@ export function BottomNav({ currentView, onChangeView }: BottomNavProps) {
           onClick={() => router.push("/fields")}
           className={cn(
             "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
-            currentView === "fields"
+            isFields
               ? "text-emerald-600 font-bold"
               : "text-gray-400 hover:text-gray-600 font-medium"
           )}
         >
-          <div className={cn("p-1.5 rounded-xl transition-colors", currentView === "fields" ? "bg-emerald-50" : "")}>
-             <MapPin className={cn("w-7 h-7", currentView === "fields" && "fill-emerald-100")} />
+          <div className={cn("p-1.5 rounded-xl transition-colors", isFields ? "bg-emerald-50" : "")}>
+             <MapPin className={cn("w-6 h-6", isFields && "fill-emerald-100")} />
           </div>
-          <span className="text-xs tracking-tight">圃場</span>
+          <span className="text-[10px] tracking-tight">圃場</span>
         </button>
 
-        {/* Notifications Tab */}
+        {/* Reports Tab */}
         <button
-          onClick={() => {}}
-          className="flex flex-col items-center justify-center gap-1.5 text-gray-400 hover:text-gray-600 font-medium transition-all active:scale-95 relative"
+          onClick={() => router.push("/reports")}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
+            isReports
+              ? "text-purple-600 font-bold"
+              : "text-gray-400 hover:text-gray-600 font-medium"
+          )}
         >
-          <div className="relative p-1.5">
-            <Bell className="w-7 h-7" />
-            <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white" />
+          <div className={cn("p-1.5 rounded-xl transition-colors", isReports ? "bg-purple-50" : "")}>
+            <PieChart className={cn("w-6 h-6", isReports && "fill-purple-100")} />
           </div>
-          <span className="text-xs tracking-tight">通知</span>
+          <span className="text-[10px] tracking-tight">分析</span>
+        </button>
+
+        {/* Logs Tab */}
+        <button
+          onClick={() => router.push("/logs")}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
+             isLogs
+              ? "text-orange-600 font-bold"
+              : "text-gray-400 hover:text-gray-600 font-medium"
+          )}
+        >
+          <div className={cn("p-1.5 rounded-xl transition-colors", isLogs ? "bg-orange-50" : "")}>
+            <ClipboardList className="w-6 h-6" />
+          </div>
+          <span className="text-[10px] tracking-tight">履歴</span>
         </button>
       </div>
     </div>
