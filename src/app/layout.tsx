@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_JP } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <BottomNav />
         </Suspense>
+        <PushNotificationManager />
       </body>
     </html>
   );
