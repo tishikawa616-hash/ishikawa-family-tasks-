@@ -155,8 +155,35 @@ export default function Home() {
   };
 
   const handleTaskMoved = async (taskId: string, newStatus: string) => {
-    // Optimistic update is handled by Board component's setBoard
-    // We just need to persist the change
+    // Optimistic update - move task to target column immediately
+    setBoard((prev) => {
+      const sourceColumn = prev.columns.find((col) =>
+        col.tasks.some((t) => t.id === taskId)
+      );
+      const targetColumn = prev.columns.find((col) => col.id === newStatus);
+      
+      if (!sourceColumn || !targetColumn || sourceColumn.id === targetColumn.id) {
+        return prev;
+      }
+      
+      const task = sourceColumn.tasks.find((t) => t.id === taskId);
+      if (!task) return prev;
+      
+      return {
+        ...prev,
+        columns: prev.columns.map((col) => {
+          if (col.id === sourceColumn.id) {
+            return { ...col, tasks: col.tasks.filter((t) => t.id !== taskId) };
+          }
+          if (col.id === targetColumn.id) {
+            return { ...col, tasks: [...col.tasks, { ...task, status: newStatus }] };
+          }
+          return col;
+        }),
+      };
+    });
+    
+    // Persist to database
     try {
       const { error } = await supabase
         .from("tasks")
@@ -165,7 +192,6 @@ export default function Home() {
 
       if (error) {
         console.error("Error updating task status:", error);
-        // Revert or show error (for simplistic approach, just log)
       }
     } catch (err) {
       console.error("Unexpected error updating task:", err);
