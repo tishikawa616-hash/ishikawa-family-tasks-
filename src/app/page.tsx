@@ -155,19 +155,27 @@ export default function Home() {
   };
 
   const handleTaskMoved = async (taskId: string, newStatus: string) => {
+    console.log("[MOVE DEBUG] handleTaskMoved called with:", taskId, newStatus);
+    
     // Optimistic update - move task to target column immediately
     setBoard((prev) => {
+      console.log("[MOVE DEBUG] setBoard callback running");
       const sourceColumn = prev.columns.find((col) =>
         col.tasks.some((t) => t.id === taskId)
       );
       const targetColumn = prev.columns.find((col) => col.id === newStatus);
       
+      console.log("[MOVE DEBUG] sourceColumn:", sourceColumn?.id, "targetColumn:", targetColumn?.id);
+      
       if (!sourceColumn || !targetColumn || sourceColumn.id === targetColumn.id) {
+        console.log("[MOVE DEBUG] Early return - no valid source/target");
         return prev;
       }
       
       const task = sourceColumn.tasks.find((t) => t.id === taskId);
       if (!task) return prev;
+      
+      console.log("[MOVE DEBUG] Moving task:", task.title, "from", sourceColumn.id, "to", targetColumn.id);
       
       return {
         ...prev,
