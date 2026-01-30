@@ -83,7 +83,7 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
           strategy={verticalListSortingStrategy}
         >
           {column.tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={() => onTaskClick?.(task)} onStatusChange={onStatusChange} />
+            <TaskCard key={task.id} task={task} currentColumnId={column.id} onClick={() => onTaskClick?.(task)} onStatusChange={onStatusChange} />
           ))}
         </SortableContext>
 

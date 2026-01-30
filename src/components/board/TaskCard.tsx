@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
+  currentColumnId?: string; // Actual column the task is in (may differ from task.status after D&D)
   isDragging?: boolean;
   onClick?: (task: Task) => void;
   onStatusChange?: (taskId: string, newStatus: string) => void;
@@ -31,7 +32,7 @@ const STATUS_LABELS: Record<string, { label: string; icon: React.ReactNode; colo
   "col-done": { label: "完了", icon: <Check className="w-5 h-5" />, color: "#10b981" },
 };
 
-export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCardProps) {
+export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusChange }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -55,8 +56,9 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
   const swipeThreshold = 80;
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Calculate next/prev status
-  const currentIndex = STATUS_ORDER.indexOf(task.status || "col-todo");
+  // Calculate next/prev status based on ACTUAL column position (not stale task.status)
+  const actualStatus = currentColumnId || task.status || "col-todo";
+  const currentIndex = STATUS_ORDER.indexOf(actualStatus);
   const nextStatus = currentIndex < STATUS_ORDER.length - 1 ? STATUS_ORDER[currentIndex + 1] : null;
   const prevStatus = currentIndex > 0 ? STATUS_ORDER[currentIndex - 1] : null;
 
