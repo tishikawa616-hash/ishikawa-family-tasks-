@@ -83,7 +83,6 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     
     // Capture pointer for tracking outside element
     cardRef.current?.setPointerCapture(e.pointerId);
-    console.log("[SWIPE DEBUG] Pointer down at:", e.clientX);
   };
 
   const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
@@ -107,16 +106,11 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     cardRef.current?.releasePointerCapture(e.pointerId);
     
     const currentX = x.get();
-    console.log("[SWIPE DEBUG] Pointer up, currentX:", currentX, "threshold:", swipeThreshold);
     
     if (currentX > swipeThreshold && nextStatus) {
-      console.log("[SWIPE DEBUG] Triggering status change to:", nextStatus);
       onStatusChange?.(task.id, nextStatus);
     } else if (currentX < -swipeThreshold && prevStatus) {
-      console.log("[SWIPE DEBUG] Triggering status change to:", prevStatus);
       onStatusChange?.(task.id, prevStatus);
-    } else {
-      console.log("[SWIPE DEBUG] Threshold not met");
     }
     
     // Animate back to original position
