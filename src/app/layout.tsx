@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,11 +47,13 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body className="antialiased">
-        {children}
-        <Suspense fallback={null}>
-          <BottomNav />
-        </Suspense>
-        <PushNotificationManager />
+        <ToastProvider>
+          {children}
+          <Suspense fallback={null}>
+            <BottomNav />
+          </Suspense>
+          <PushNotificationManager />
+        </ToastProvider>
       </body>
     </html>
   );

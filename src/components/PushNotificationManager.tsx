@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 const urlBase64ToUint8Array = (base64String: string) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -20,6 +21,7 @@ const urlBase64ToUint8Array = (base64String: string) => {
 export function PushNotificationManager() {
   const [isSupported, setIsSupported] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     let isMounted = true;
@@ -55,7 +57,7 @@ export function PushNotificationManager() {
       setSubscription(sub);
       
       // Send to server
-      await fetch("/api/web-push/subscribe", {
+      const response = await fetch("/api/web-push/subscribe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,10 +65,14 @@ export function PushNotificationManager() {
         body: JSON.stringify(sub),
       });
 
-      alert("通知をオンにしました！");
+      if (response.ok) {
+        showToast("通知をオンにしました！", "success");
+      } else {
+        throw new Error("Failed to save subscription");
+      }
     } catch (error) {
       console.error("Subscription failed", error);
-      alert("通知の設定に失敗しました。");
+      showToast("通知の設定に失敗しました。", "error");
     }
   };
 
