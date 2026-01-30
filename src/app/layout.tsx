@@ -35,6 +35,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+import { BottomNav } from "@/components/layout/BottomNav";
+
+// ... existing imports ...
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,6 +48,7 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body className="antialiased">
         {children}
+        <BottomNav />
       </body>
     </html>
   );

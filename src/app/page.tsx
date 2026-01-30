@@ -4,10 +4,9 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
-import { BottomNav } from "@/components/layout/BottomNav";
 import type { Board as BoardType, Task, Column } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { WeatherWidget } from "@/components/weather/WeatherWidget";
 import { Field } from "@/types/field";
 
@@ -19,13 +18,24 @@ const INITIAL_COLUMNS: Column[] = [
 ];
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<"board" | "calendar">("board");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialView = searchParams.get("view") === "calendar" ? "calendar" : "board";
+  
+  const [currentView, setCurrentView] = useState<"board" | "calendar">(initialView);
+
+  // Sync state with URL params
+  useEffect(() => {
+    const view = searchParams.get("view");
+    if (view === "calendar") setCurrentView("calendar");
+    else if (view === "board") setCurrentView("board");
+  }, [searchParams]);
+
   const [board, setBoard] = useState<BoardType>({ id: "board-1", title: "石川家タスクボード", columns: INITIAL_COLUMNS });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | undefined>(undefined);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const supabase = createClient();
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
   // Field Filter State
@@ -427,9 +437,6 @@ export default function Home() {
       >
         <span className="text-3xl font-light leading-none mb-1">+</span>
       </button>
-
-      {/* Bottom Navigation */}
-      <BottomNav currentView={currentView} onChangeView={setCurrentView} />
 
       {/* Add/Edit Task Modal */}
       <TaskModal

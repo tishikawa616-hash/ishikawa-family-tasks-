@@ -2,23 +2,28 @@
 
 import { LayoutGrid, Calendar, MapPin, PieChart, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 interface BottomNavProps {
   currentView?: "board" | "calendar";
   onChangeView?: (view: "board" | "calendar") => void;
 }
 
-export function BottomNav({ currentView, onChangeView }: BottomNavProps) {
+export function BottomNav({ currentView: propCurrentView, onChangeView }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  if (pathname === "/login") return null;
+
+  const currentView = propCurrentView || (searchParams.get("view") === "calendar" ? "calendar" : "board");
 
   const isHome = pathname === "/";
   const isBoard = isHome && currentView === "board";
   const isCalendar = isHome && currentView === "calendar";
-  const isFields = pathname === "/fields";
-  const isReports = pathname === "/reports";
-  const isLogs = pathname === "/logs";
+  const isFields = pathname.startsWith("/fields");
+  const isReports = pathname.startsWith("/reports");
+  const isLogs = pathname.startsWith("/logs");
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-xl border-t border-gray-200 z-40 pb-safe-bottom">
