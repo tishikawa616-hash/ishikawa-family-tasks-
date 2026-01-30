@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, TouchEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { GripVertical, Calendar, Tag, Check, Play, Clock } from "lucide-react";
 import type { Task } from "@/types/board";
 import { cn } from "@/lib/utils";
@@ -48,9 +48,11 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
 
   const dragging = isDragging || isSortableDragging;
 
-  // Swipe state
+  // Swipe state using native touch events
   const x = useMotionValue(0);
   const [swiping, setSwiping] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const swipeThreshold = 80;
 
   // Calculate next/prev status
   const currentIndex = STATUS_ORDER.indexOf(task.status || "col-todo");
@@ -65,22 +67,47 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
   ]);
 
   const bgOpacity = useTransform(x, [-150, -50, 0, 50, 150], [1, 0.5, 0, 0.5, 1]);
-  
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 80;
+
+  // Native touch handlers for swipe
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
     setSwiping(false);
+  };
+
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current) return;
     
-    if (info.offset.x > threshold && nextStatus) {
-      // Swiped Right -> Move forward
-      onStatusChange?.(task.id, nextStatus);
-    } else if (info.offset.x < -threshold && prevStatus) {
-      // Swiped Left -> Move backward
-      onStatusChange?.(task.id, prevStatus);
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    
+    // Only trigger swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      setSwiping(true);
+      x.set(deltaX);
+      // Prevent vertical scrolling while swiping
+      e.preventDefault();
     }
   };
 
-  const handleDragStart = () => {
-    setSwiping(true);
+  const handleTouchEnd = () => {
+    if (!touchStartRef.current) return;
+    
+    const currentX = x.get();
+    
+    if (currentX > swipeThreshold && nextStatus) {
+      // Swiped Right -> Move forward
+      onStatusChange?.(task.id, nextStatus);
+    } else if (currentX < -swipeThreshold && prevStatus) {
+      // Swiped Left -> Move backward
+      onStatusChange?.(task.id, prevStatus);
+    }
+    
+    // Animate back to original position
+    animate(x, 0, { duration: 0.2 });
+    touchStartRef.current = null;
+    setSwiping(false);
   };
 
   // Swipe hint icons
@@ -122,27 +149,24 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
         </div>
       </motion.div>
 
-      {/* Card Content (Swipeable) */}
+      {/* Card Content (Swipeable via native touch) */}
       <motion.div
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.5}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        style={{ x, touchAction: "pan-y" }}
+        style={{ x }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={() => !swiping && onClick?.(task)}
         className={cn(
-          "bg-white p-4 cursor-grab active:cursor-grabbing hover:bg-gray-50",
+          "bg-white p-4 cursor-pointer hover:bg-gray-50",
           "rounded-[20px] shadow-sm border border-gray-100",
           "transition-shadow duration-200 active:scale-[0.98]",
           "border-l-[6px]",
           priorityColors[task.priority || "low"],
-          "group relative touch-pan-y select-none"
+          "group relative select-none"
         )}
-        // listeners removed from here to allow swipe
       >
-        {/* Version Indicator for Debugging */}
-        <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full opacity-50 pointer-events-none z-10" />
+        {/* Version Indicator for Debugging - now GREEN to confirm new version */}
+        <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full opacity-70 pointer-events-none z-10" />
         <div className="flex items-start gap-3">
           {/* Drag Handle - Only this part triggers Sortable Drag */}
           <div className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
