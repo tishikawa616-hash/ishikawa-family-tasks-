@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
-  currentColumnId?: string; // Actual column the task is in (may differ from task.status after D&D)
+  currentColumnId?: string;
   isDragging?: boolean;
   onClick?: (task: Task) => void;
   onStatusChange?: (taskId: string, newStatus: string) => void;
@@ -22,7 +22,6 @@ const priorityColors = {
   low: "border-l-emerald-500",
 };
 
-// Status progression order
 const STATUS_ORDER = ["col-todo", "col-inprogress", "col-review", "col-done"];
 
 const STATUS_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -49,20 +48,18 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
 
   const dragging = isDragging || isSortableDragging;
 
-  // Swipe state using Pointer Events (works for both mouse and touch)
   const x = useMotionValue(0);
   const [swiping, setSwiping] = useState(false);
   const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const swipeThreshold = 80;
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Calculate next/prev status based on ACTUAL column position (not stale task.status)
   const actualStatus = currentColumnId || task.status || "col-todo";
   const currentIndex = STATUS_ORDER.indexOf(actualStatus);
   const nextStatus = currentIndex < STATUS_ORDER.length - 1 ? STATUS_ORDER[currentIndex + 1] : null;
   const prevStatus = currentIndex > 0 ? STATUS_ORDER[currentIndex - 1] : null;
 
-  // Background color based on swipe direction
+  // Background color: when swiping RIGHT (x > 0), show NEXT status. When LEFT (x < 0), show PREV status.
   const bgColor = useTransform(x, [-150, 0, 150], [
     prevStatus ? STATUS_LABELS[prevStatus]?.color || "#eee" : "#eee",
     "#ffffff",
@@ -71,27 +68,17 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
 
   const bgOpacity = useTransform(x, [-150, -50, 0, 50, 150], [1, 0.5, 0, 0.5, 1]);
 
-  // Pointer Events handlers (work for both mouse and touch)
   const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
-    // Ignore if clicking on the drag handle
-    if ((e.target as HTMLElement).closest('[data-drag-handle]')) {
-      return;
-    }
-    
+    if ((e.target as HTMLElement).closest('[data-drag-handle]')) return;
     pointerStartRef.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
     setSwiping(false);
-    
-    // Capture pointer for tracking outside element
     cardRef.current?.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
     if (!pointerStartRef.current) return;
-    
     const deltaX = e.clientX - pointerStartRef.current.x;
     const deltaY = e.clientY - pointerStartRef.current.y;
-    
-    // Only trigger swipe if horizontal movement is dominant
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
       setSwiping(true);
       x.set(deltaX);
@@ -101,19 +88,13 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
 
   const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
     if (!pointerStartRef.current) return;
-    
-    // Release pointer capture
     cardRef.current?.releasePointerCapture(e.pointerId);
-    
     const currentX = x.get();
-    
     if (currentX > swipeThreshold && nextStatus) {
       onStatusChange?.(task.id, nextStatus);
     } else if (currentX < -swipeThreshold && prevStatus) {
       onStatusChange?.(task.id, prevStatus);
     }
-    
-    // Animate back to original position
     animate(x, 0, { duration: 0.2 });
     pointerStartRef.current = null;
     setSwiping(false);
@@ -125,9 +106,10 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     setSwiping(false);
   };
 
-  // Swipe hint icons
-  const leftHintIcon = prevStatus ? STATUS_LABELS[prevStatus] : null;
-  const rightHintIcon = nextStatus ? STATUS_LABELS[nextStatus] : null;
+  // Hint icons: when card moves RIGHT, user sees LEFT side -> show NEXT status there
+  // When card moves LEFT, user sees RIGHT side -> show PREV status there
+  const leftSideHint = nextStatus ? STATUS_LABELS[nextStatus] : null;
+  const rightSideHint = prevStatus ? STATUS_LABELS[prevStatus] : null;
 
   return (
     <div
@@ -144,27 +126,27 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
         className="absolute inset-0 flex items-center justify-between px-6 rounded-[20px]"
         style={{ backgroundColor: bgColor, opacity: bgOpacity }}
       >
-        {/* Left Hint (Prev Status) */}
+        {/* Left side - revealed when swiping RIGHT -> show NEXT status */}
         <div className="flex items-center gap-2 text-white font-bold">
-          {leftHintIcon && (
+          {leftSideHint && (
             <>
-              {leftHintIcon.icon}
-              <span className="text-sm">{leftHintIcon.label}</span>
+              {leftSideHint.icon}
+              <span className="text-sm">{leftSideHint.label}</span>
             </>
           )}
         </div>
-        {/* Right Hint (Next Status) */}
+        {/* Right side - revealed when swiping LEFT -> show PREV status */}
         <div className="flex items-center gap-2 text-white font-bold">
-          {rightHintIcon && (
+          {rightSideHint && (
             <>
-              <span className="text-sm">{rightHintIcon.label}</span>
-              {rightHintIcon.icon}
+              <span className="text-sm">{rightSideHint.label}</span>
+              {rightSideHint.icon}
             </>
           )}
         </div>
       </motion.div>
 
-      {/* Card Content (Swipeable via Pointer Events) */}
+      {/* Card Content */}
       <motion.div
         ref={cardRef}
         style={{ x, touchAction: "pan-y" }}
@@ -182,39 +164,24 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
           "group relative select-none"
         )}
       >
-        {/* Version Indicator - PURPLE means pointer events version */}
-        <div className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full opacity-70 pointer-events-none z-10" />
         <div className="flex items-start gap-3">
-          {/* Drag Handle - Only this part triggers Sortable Drag */}
           <div data-drag-handle className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
-            <GripVertical
-              className="w-5 h-5 text-gray-300 opacity-100 mt-1"
-            />
+            <GripVertical className="w-5 h-5 text-gray-300 opacity-100 mt-1" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-lg font-bold text-gray-800 leading-tight mb-1.5">
-              {task.title}
-            </h4>
+            <h4 className="text-lg font-bold text-gray-800 leading-tight mb-1.5">{task.title}</h4>
             {task.description && (
-              <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">
-                {task.description}
-              </p>
+              <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">{task.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2 mt-auto">
               {task.dueDate && (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
                   <Calendar className="w-3.5 h-3.5" />
-                  {new Date(task.dueDate).toLocaleDateString("ja-JP", {
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {new Date(task.dueDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
                 </span>
               )}
               {task.tags?.slice(0, 2).map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-50 text-blue-600"
-                >
+                <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-50 text-blue-600">
                   <Tag className="w-3 h-3" />
                   {tag}
                 </span>
@@ -222,11 +189,7 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
               {task.assignee?.displayName && (
                 <div className="ml-auto flex items-center gap-1" title={`担当者: ${task.assignee.displayName}`}>
                   <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold ring-2 ring-white shadow-sm">
-                    {task.assignee.avatarUrl ? (
-                       <img src={task.assignee.avatarUrl} alt={task.assignee.displayName} className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      task.assignee.displayName.slice(0, 2)
-                    )}
+                    {task.assignee.displayName.slice(0, 2)}
                   </div>
                 </div>
               )}
