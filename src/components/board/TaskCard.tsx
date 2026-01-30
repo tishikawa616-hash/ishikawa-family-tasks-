@@ -139,12 +139,15 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
           priorityColors[task.priority || "low"],
           "group relative"
         )}
-        {...listeners}
+        // listeners removed from here to allow swipe
       >
         <div className="flex items-start gap-3">
-          <GripVertical
-            className="w-5 h-5 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1"
-          />
+          {/* Drag Handle - Only this part triggers Sortable Drag */}
+          <div className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
+            <GripVertical
+              className="w-5 h-5 text-gray-300 opacity-100 mt-1"
+            />
+          </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-lg font-bold text-gray-800 leading-tight mb-1.5">
               {task.title}
