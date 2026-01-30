@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_JP } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
+import { BottomNav } from "@/components/layout/BottomNav";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,10 +37,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-import { BottomNav } from "@/components/layout/BottomNav";
-
-// ... existing imports ...
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,7 +46,9 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body className="antialiased">
         {children}
-        <BottomNav />
+        <Suspense fallback={null}>
+          <BottomNav />
+        </Suspense>
       </body>
     </html>
   );

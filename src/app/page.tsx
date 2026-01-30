@@ -1,7 +1,7 @@
 "use client";
 import { cn } from "@/lib/utils";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
 import type { Board as BoardType, Task, Column } from "@/types/board";
@@ -17,7 +17,7 @@ const INITIAL_COLUMNS: Column[] = [
   { id: "col-done", title: "完了", tasks: [], color: "#10b981" }, // Emerald-500
 ];
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialView = searchParams.get("view") === "calendar" ? "calendar" : "board";
@@ -441,13 +441,25 @@ export default function Home() {
       {/* Add/Edit Task Modal */}
       <TaskModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSaveTask}
-        onDelete={handleDeleteTask}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingTask(null);
+          setActiveColumnId(undefined);
+        }}
         columns={board.columns}
         initialStatus={activeColumnId}
         initialData={editingTask || undefined}
+        onSubmit={handleSaveTask}
+        onDelete={handleDeleteTask}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">読み込み中...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
