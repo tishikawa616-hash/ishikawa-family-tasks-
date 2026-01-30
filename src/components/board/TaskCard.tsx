@@ -129,7 +129,7 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
         dragElastic={0.5}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        style={{ x }}
+        style={{ x, touchAction: "pan-y" }}
         onClick={() => !swiping && onClick?.(task)}
         className={cn(
           "bg-white p-4 cursor-grab active:cursor-grabbing hover:bg-gray-50",
@@ -137,7 +137,7 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
           "transition-shadow duration-200 active:scale-[0.98]",
           "border-l-[6px]",
           priorityColors[task.priority || "low"],
-          "group relative touch-pan-y"
+          "group relative touch-pan-y select-none"
         )}
         // listeners removed from here to allow swipe
       >
