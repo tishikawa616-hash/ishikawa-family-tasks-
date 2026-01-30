@@ -27,6 +27,7 @@ interface BoardProps {
   onAddTask: (columnId?: string) => void;
   onTaskMove: (taskId: string, newStatus: string) => void;
   onTaskClick?: (task: Task) => void;
+  onStatusChange?: (taskId: string, newStatus: string) => void;
 }
 
 // Client-side only check using useSyncExternalStore
@@ -34,7 +35,7 @@ const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: BoardProps) {
+export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onStatusChange }: BoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   // Use useSyncExternalStore for SSR-safe client detection (no hydration mismatch)
@@ -175,6 +176,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
             column={column}
             onAddTask={onAddTask}
             onTaskClick={onTaskClick}
+            onStatusChange={onStatusChange}
           />
         ))}
       </div>
@@ -240,6 +242,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
                    column={column}
                    onAddTask={onAddTask}
                    onTaskClick={onTaskClick}
+                   onStatusChange={onStatusChange}
                  />
                ))}
             </div>
@@ -279,6 +282,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick }: B
                        column={activeColumn}
                        onAddTask={onAddTask}
                        onTaskClick={onTaskClick}
+                       onStatusChange={onStatusChange}
                      />
                    </motion.div>
                  )}

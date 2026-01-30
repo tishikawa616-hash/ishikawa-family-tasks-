@@ -374,6 +374,7 @@ export default function Home() {
             onAddTask={openAddTaskModal}
             onTaskMove={handleTaskMoved}
             onTaskClick={handleTaskClick}
+            onStatusChange={handleTaskMoved}
           />
         ) : (
           <CalendarView board={filteredBoard} />
