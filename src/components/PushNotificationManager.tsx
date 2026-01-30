@@ -48,11 +48,14 @@ export function PushNotificationManager() {
   const subscribeToPush = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) {
+        throw new Error("VAPID Public Key is missing. Check environment variables.");
+      }
+
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-        ),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
       setSubscription(sub);
       
