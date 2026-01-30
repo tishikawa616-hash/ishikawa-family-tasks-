@@ -68,11 +68,13 @@ export function PushNotificationManager() {
       if (response.ok) {
         showToast("通知をオンにしました！", "success");
       } else {
-        throw new Error("Failed to save subscription");
+        const errorData = await response.json();
+        console.error("Subscription server error:", errorData);
+        throw new Error(errorData.error || "Failed to save subscription");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Subscription failed", error);
-      showToast("通知の設定に失敗しました。", "error");
+      showToast(`通知設定失敗: ${error.message || "不明なエラー"}`, "error");
     }
   };
 

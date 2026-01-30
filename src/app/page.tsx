@@ -313,7 +313,9 @@ function HomeContent() {
   return (
     <div className="min-h-screen flex flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-4 py-3 flex items-center justify-between bg-(--color-bg-glass)">
+      <header 
+        className="glass sticky top-0 z-50 px-4 pb-3 flex items-center justify-between bg-(--color-bg-glass) pt-[calc(env(safe-area-inset-top)+12px)]"
+      >
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="bg-(--color-accent-primary) p-1.5 rounded-lg">
