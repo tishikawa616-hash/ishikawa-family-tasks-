@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, TouchEvent } from "react";
+import { useState, useRef, PointerEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
@@ -48,11 +48,12 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
 
   const dragging = isDragging || isSortableDragging;
 
-  // Swipe state using native touch events
+  // Swipe state using Pointer Events (works for both mouse and touch)
   const x = useMotionValue(0);
   const [swiping, setSwiping] = useState(false);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
   const swipeThreshold = 80;
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Calculate next/prev status
   const currentIndex = STATUS_ORDER.indexOf(task.status || "col-todo");
@@ -68,51 +69,63 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
 
   const bgOpacity = useTransform(x, [-150, -50, 0, 50, 150], [1, 0.5, 0, 0.5, 1]);
 
-  // Native touch handlers for swipe
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  // Pointer Events handlers (work for both mouse and touch)
+  const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    // Ignore if clicking on the drag handle
+    if ((e.target as HTMLElement).closest('[data-drag-handle]')) {
+      return;
+    }
+    
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
     setSwiping(false);
+    
+    // Capture pointer for tracking outside element
+    cardRef.current?.setPointerCapture(e.pointerId);
+    console.log("[SWIPE DEBUG] Pointer down at:", e.clientX);
   };
 
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    if (!touchStartRef.current) return;
+  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!pointerStartRef.current) return;
     
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaX = e.clientX - pointerStartRef.current.x;
+    const deltaY = e.clientY - pointerStartRef.current.y;
     
     // Only trigger swipe if horizontal movement is dominant
     if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
       setSwiping(true);
       x.set(deltaX);
-      // Prevent vertical scrolling while swiping
       e.preventDefault();
     }
   };
 
-  const handleTouchEnd = () => {
-    if (!touchStartRef.current) return;
+  const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
+    if (!pointerStartRef.current) return;
+    
+    // Release pointer capture
+    cardRef.current?.releasePointerCapture(e.pointerId);
     
     const currentX = x.get();
-    console.log("[SWIPE DEBUG] handleTouchEnd called, currentX:", currentX, "threshold:", swipeThreshold);
-    console.log("[SWIPE DEBUG] nextStatus:", nextStatus, "prevStatus:", prevStatus);
+    console.log("[SWIPE DEBUG] Pointer up, currentX:", currentX, "threshold:", swipeThreshold);
     
     if (currentX > swipeThreshold && nextStatus) {
-      // Swiped Right -> Move forward
       console.log("[SWIPE DEBUG] Triggering status change to:", nextStatus);
       onStatusChange?.(task.id, nextStatus);
     } else if (currentX < -swipeThreshold && prevStatus) {
-      // Swiped Left -> Move backward
       console.log("[SWIPE DEBUG] Triggering status change to:", prevStatus);
       onStatusChange?.(task.id, prevStatus);
     } else {
-      console.log("[SWIPE DEBUG] Threshold not met or no status to change to");
+      console.log("[SWIPE DEBUG] Threshold not met");
     }
     
     // Animate back to original position
     animate(x, 0, { duration: 0.2 });
-    touchStartRef.current = null;
+    pointerStartRef.current = null;
+    setSwiping(false);
+  };
+
+  const handlePointerCancel = () => {
+    animate(x, 0, { duration: 0.2 });
+    pointerStartRef.current = null;
     setSwiping(false);
   };
 
@@ -155,12 +168,14 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
         </div>
       </motion.div>
 
-      {/* Card Content (Swipeable via native touch) */}
+      {/* Card Content (Swipeable via Pointer Events) */}
       <motion.div
-        style={{ x }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        ref={cardRef}
+        style={{ x, touchAction: "pan-y" }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onClick={() => !swiping && onClick?.(task)}
         className={cn(
           "bg-white p-4 cursor-pointer hover:bg-gray-50",
@@ -171,11 +186,11 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
           "group relative select-none"
         )}
       >
-        {/* Version Indicator for Debugging - now GREEN to confirm new version */}
-        <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full opacity-70 pointer-events-none z-10" />
+        {/* Version Indicator - PURPLE means pointer events version */}
+        <div className="absolute top-1 right-1 w-2 h-2 bg-purple-500 rounded-full opacity-70 pointer-events-none z-10" />
         <div className="flex items-start gap-3">
           {/* Drag Handle - Only this part triggers Sortable Drag */}
-          <div className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
+          <div data-drag-handle className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
             <GripVertical
               className="w-5 h-5 text-gray-300 opacity-100 mt-1"
             />
