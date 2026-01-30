@@ -313,7 +313,8 @@ function HomeContent() {
   return (
     <div className="min-h-screen flex flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
       <header 
-        className="glass sticky top-0 z-50 px-4 pb-3 flex items-center justify-between bg-(--color-bg-glass) pt-[max(env(safe-area-inset-top),24px)]"
+        className="glass sticky top-0 z-50 px-4 pb-3 flex items-center justify-between bg-(--color-bg-glass)"
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px) + 12px, 28px)' }}
       >
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
