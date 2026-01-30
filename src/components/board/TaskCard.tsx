@@ -137,7 +137,7 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
           "transition-shadow duration-200 active:scale-[0.98]",
           "border-l-[6px]",
           priorityColors[task.priority || "low"],
-          "group relative"
+          "group relative touch-pan-y"
         )}
         // listeners removed from here to allow swipe
       >
