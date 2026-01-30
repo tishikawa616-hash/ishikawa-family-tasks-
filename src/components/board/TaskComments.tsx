@@ -16,17 +16,17 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   const supabase = createClient();
 
   const fetchComments = useCallback(async () => {
-    const { data } = await supabase
+    // Simplified query without profiles join (foreign key may not be configured)
+    const { data, error } = await supabase
       .from("task_comments")
-      .select(`
-        id,
-        content,
-        created_at,
-        user_id,
-        profiles:user_id (display_name, avatar_url, email)
-      `)
+      .select("id, content, created_at, user_id")
       .eq("task_id", taskId)
       .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching comments:", error);
+      return;
+    }
 
     if (data) {
       setComments(
@@ -34,9 +34,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
           id: c.id,
           taskId,
           userId: c.user_id,
-          userName: (c.profiles as { display_name?: string; email?: string })?.display_name || 
-                    (c.profiles as { email?: string })?.email || "不明",
-          userAvatar: (c.profiles as { avatar_url?: string })?.avatar_url,
+          userName: "ユーザー", // Default name since we can't fetch profiles
+          userAvatar: undefined,
           content: c.content,
           createdAt: c.created_at,
         }))
