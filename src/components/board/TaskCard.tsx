@@ -141,6 +141,8 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
         )}
         // listeners removed from here to allow swipe
       >
+        {/* Version Indicator for Debugging */}
+        <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-blue-500 rounded-full opacity-50 pointer-events-none z-10" />
         <div className="flex items-start gap-3">
           {/* Drag Handle - Only this part triggers Sortable Drag */}
           <div className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
