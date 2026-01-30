@@ -95,13 +95,19 @@ export function TaskCard({ task, isDragging, onClick, onStatusChange }: TaskCard
     if (!touchStartRef.current) return;
     
     const currentX = x.get();
+    console.log("[SWIPE DEBUG] handleTouchEnd called, currentX:", currentX, "threshold:", swipeThreshold);
+    console.log("[SWIPE DEBUG] nextStatus:", nextStatus, "prevStatus:", prevStatus);
     
     if (currentX > swipeThreshold && nextStatus) {
       // Swiped Right -> Move forward
+      console.log("[SWIPE DEBUG] Triggering status change to:", nextStatus);
       onStatusChange?.(task.id, nextStatus);
     } else if (currentX < -swipeThreshold && prevStatus) {
       // Swiped Left -> Move backward
+      console.log("[SWIPE DEBUG] Triggering status change to:", prevStatus);
       onStatusChange?.(task.id, prevStatus);
+    } else {
+      console.log("[SWIPE DEBUG] Threshold not met or no status to change to");
     }
     
     // Animate back to original position
