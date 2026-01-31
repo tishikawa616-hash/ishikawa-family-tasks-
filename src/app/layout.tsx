@@ -5,6 +5,7 @@ import "./globals.css";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { ToastProvider } from "@/components/ui/ToastProvider";
+import { ClientVersion } from "@/components/pwa/ClientVersion";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,6 +49,7 @@ export default function RootLayout({
     <html lang="ja" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body className="antialiased">
         <ToastProvider>
+          <ClientVersion />
           {children}
           <Suspense fallback={null}>
             <BottomNav />

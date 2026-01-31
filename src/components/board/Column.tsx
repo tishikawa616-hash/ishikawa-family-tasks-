@@ -25,58 +25,39 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
   return (
     <div
       className={cn(
-        "flex flex-col w-full md:w-72 shrink-0",
-        "rounded-xl",
-        "border border-(--color-border)",
-        "backdrop-blur-sm transition-colors",
-        isOver && "ring-2 ring-(--color-accent-primary) ring-opacity-50"
+        "flex flex-col w-full md:w-80 shrink-0",
+        "bg-transparent transition-colors", // Transparent bg
+        isOver && "bg-blue-50/50 rounded-xl"
       )}
-      style={{
-        borderColor: `${column.color}40`, // Subtle border match
-        backgroundColor: `rgba(255, 255, 255, 0.4)` // Lighter glass background for whole column
-      }}
     >
       {/* Column Header */}
-      <div 
-        className="flex items-center justify-between p-3 border-b"
-        style={{ 
-          backgroundColor: `${column.color}15`, // Header gets the color tint
-          borderColor: `${column.color}20`
-        }}
-      >
-        <h3 className="font-bold text-lg text-(--color-text-primary) flex items-center gap-2">
-          {/* Accent Line/Indicator */}
+      <div className="flex items-center justify-between px-2 py-3 mb-2">
+        <h3 className="font-bold text-lg text-gray-700 flex items-center gap-3">
+          {/* Circular Indicator */}
           <div 
-             className="w-1.5 h-6 rounded-full"
+             className="w-3 h-3 rounded-full ring-2 ring-white shadow-sm"
              style={{ backgroundColor: column.color }}
           />
           {column.title}
           
-          {/* Styled count badge */}
-          <span 
-            className="text-sm font-bold px-2.5 py-0.5 rounded-full border"
-            style={{ 
-                backgroundColor: `${column.color}20`,
-                color: column.color, // Text matches color
-                borderColor: `${column.color}30`
-            }}
-          >
+          {/* Subtle Counter */}
+          <span className="text-xs font-medium text-gray-400 bg-white/50 px-2 py-0.5 rounded-full ml-1">
             {column.tasks.length}
           </span>
         </h3>
         <button
-          className="p-2 touch-target rounded-full hover:bg-white/50 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/50 text-gray-400 hover:text-blue-600 transition-colors"
           aria-label="タスクを追加"
           onClick={() => onAddTask(column.id)}
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Tasks Container */}
+      {/* Tasks Container - Remove heavy borders, let cards float */}
       <div
         ref={setNodeRef}
-        className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[120px] md:min-h-[200px] md:max-h-[calc(100vh-200px)]"
+        className="flex-1 space-y-3 overflow-y-auto px-1 min-h-[150px] pb-24 md:pb-4"
       >
         <SortableContext
           items={column.tasks.map((t) => t.id)}
@@ -88,19 +69,17 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
         </SortableContext>
 
         {column.tasks.length === 0 && (
-          <div className="flex items-center justify-center h-24 text-base text-(--color-text-muted) border-2 border-dashed border-(--color-border) rounded-xl">
-            ドロップしてタスクを追加
+          <div 
+            onClick={() => onAddTask(column.id)}
+            className="flex flex-col items-center justify-center h-32 text-gray-400 border-2 border-dashed border-gray-200/60 rounded-2xl cursor-pointer hover:bg-white/40 hover:border-blue-200 transition-all group"
+          >
+             <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-2 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                 <Plus className="w-5 h-5" />
+             </div>
+             <span className="text-sm font-medium">タスクを追加</span>
           </div>
         )}
       </div>
-
-      {/* Add Task Button */}
-        <button
-          onClick={() => onAddTask(column.id)}
-          className="w-full py-3 mt-2 flex items-center justify-center gap-2 text-base font-bold text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-bg-glass) rounded-xl border-2 border-dashed border-(--color-border) transition-all active:scale-95"
-        ><Plus className="w-5 h-5" />
-        タスクを追加
-      </button>
     </div>
   );
 }

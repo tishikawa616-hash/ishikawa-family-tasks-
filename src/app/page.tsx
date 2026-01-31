@@ -384,19 +384,16 @@ function HomeContent() {
   }, [board, selectedFieldId]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-(--color-bg-primary) text-(--color-text-primary)">
-      <header 
-        className="glass sticky top-0 z-50 px-4 pb-3 flex items-center justify-between bg-(--color-bg-glass)"
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px) + 12px, 28px)' }}
-      >
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="bg-(--color-accent-primary) p-1.5 rounded-lg">
-              <LayoutGrid className="w-5 h-5 text-white" />
+    <div className="flex flex-col h-dvh w-full bg-(--color-bg-primary) overflow-hidden safe-p-bottom">
+      {/* Premium Header */}
+      <header className="flex shrink-0 items-center justify-between px-6 py-4 md:py-5 border-b border-(--color-border) bg-white/80 backdrop-blur-md sticky top-0 z-40 safe-p-top shadow-sm">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                <LayoutGrid className="w-6 h-6" />
             </div>
-            <h1 className="text-lg font-bold text-(--color-text-primary) hidden sm:block active:scale-95 transition-transform cursor-default">
-              石川家タスクボード
-            </h1>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-(--color-text-primary)">石川家タスク</h1>
+            <p className="text-xs text-(--color-text-muted) font-medium tracking-wide">Family Dashboard</p>
           </div>
         </div>
 

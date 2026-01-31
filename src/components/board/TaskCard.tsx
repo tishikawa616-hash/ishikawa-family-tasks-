@@ -4,7 +4,7 @@ import { useState, useRef, PointerEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { GripVertical, Calendar, Tag, Check, Play, Clock } from "lucide-react";
+import { GripVertical, Calendar, Tag, Check, Play, Clock, User } from "lucide-react";
 import type { Task } from "@/types/board";
 import { cn } from "@/lib/utils";
 
@@ -16,16 +16,16 @@ interface TaskCardProps {
   onStatusChange?: (taskId: string, newStatus: string) => void;
 }
 
-const priorityColors = {
-  high: "border-l-red-500",
-  medium: "border-l-amber-500",
-  low: "border-l-emerald-500",
+const priorityConfig = {
+  high: { color: "bg-red-500", text: "text-red-600", bg: "bg-red-50" },
+  medium: { color: "bg-amber-500", text: "text-amber-600", bg: "bg-amber-50" },
+  low: { color: "bg-emerald-500", text: "text-emerald-600", bg: "bg-emerald-50" },
 };
 
 const STATUS_ORDER = ["col-todo", "col-inprogress", "col-review", "col-done"];
 
 const STATUS_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  "col-todo": { label: "予定", icon: <Clock className="w-5 h-5" />, color: "#0ea5e9" },
+  "col-todo": { label: "予定", icon: <Clock className="w-5 h-5" />, color: "#3b82f6" },
   "col-inprogress": { label: "作業中", icon: <Play className="w-5 h-5" />, color: "#f97316" },
   "col-review": { label: "確認待ち", icon: <Clock className="w-5 h-5" />, color: "#8b5cf6" },
   "col-done": { label: "完了", icon: <Check className="w-5 h-5" />, color: "#10b981" },
@@ -47,7 +47,6 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
   };
 
   const dragging = isDragging || isSortableDragging;
-
   const x = useMotionValue(0);
   const [swiping, setSwiping] = useState(false);
   const pointerStartRef = useRef<{ x: number; y: number; pointerId: number } | null>(null);
@@ -59,11 +58,10 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
   const nextStatus = currentIndex < STATUS_ORDER.length - 1 ? STATUS_ORDER[currentIndex + 1] : null;
   const prevStatus = currentIndex > 0 ? STATUS_ORDER[currentIndex - 1] : null;
 
-  // Background color: when swiping RIGHT (x > 0), show NEXT status. When LEFT (x < 0), show PREV status.
   const bgColor = useTransform(x, [-150, 0, 150], [
-    prevStatus ? STATUS_LABELS[prevStatus]?.color || "#eee" : "#eee",
+    prevStatus ? STATUS_LABELS[prevStatus]?.color || "#f8fafc" : "#f8fafc",
     "#ffffff",
-    nextStatus ? STATUS_LABELS[nextStatus]?.color || "#eee" : "#eee",
+    nextStatus ? STATUS_LABELS[nextStatus]?.color || "#f8fafc" : "#f8fafc",
   ]);
 
   const bgOpacity = useTransform(x, [-150, -50, 0, 50, 150], [1, 0.5, 0, 0.5, 1]);
@@ -79,7 +77,8 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     if (!pointerStartRef.current) return;
     const deltaX = e.clientX - pointerStartRef.current.x;
     const deltaY = e.clientY - pointerStartRef.current.y;
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+    // Require more horizontal movement to start swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 15) {
       setSwiping(true);
       x.set(deltaX);
       e.preventDefault();
@@ -95,7 +94,7 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     } else if (currentX < -swipeThreshold && prevStatus) {
       onStatusChange?.(task.id, prevStatus);
     }
-    animate(x, 0, { duration: 0.2 });
+    animate(x, 0, { duration: 0.3, ease: [0.175, 0.885, 0.32, 1.275] }); // Spring-like return
     pointerStartRef.current = null;
     setSwiping(false);
   };
@@ -106,47 +105,34 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
     setSwiping(false);
   };
 
-  // Hint icons: when card moves RIGHT, user sees LEFT side -> show NEXT status there
-  // When card moves LEFT, user sees RIGHT side -> show PREV status there
   const leftSideHint = nextStatus ? STATUS_LABELS[nextStatus] : null;
   const rightSideHint = prevStatus ? STATUS_LABELS[prevStatus] : null;
+  const priority = priorityConfig[task.priority || "low"];
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative overflow-hidden rounded-[20px]",
-        dragging && "opacity-50 scale-105 shadow-xl rotate-2"
+        "relative group mb-3 select-none",
+        dragging && "z-50"
       )}
       {...attributes}
     >
       {/* Background Layer (Swipe Hint) */}
       <motion.div
-        className="absolute inset-0 flex items-center justify-between px-6 rounded-[20px]"
+        className="absolute inset-0 flex items-center justify-between px-6 rounded-2xl"
         style={{ backgroundColor: bgColor, opacity: bgOpacity }}
       >
-        {/* Left side - revealed when swiping RIGHT -> show NEXT status */}
         <div className="flex items-center gap-2 text-white font-bold">
-          {leftSideHint && (
-            <>
-              {leftSideHint.icon}
-              <span className="text-sm">{leftSideHint.label}</span>
-            </>
-          )}
+          {leftSideHint && <>{leftSideHint.icon}<span className="text-sm">{leftSideHint.label}</span></>}
         </div>
-        {/* Right side - revealed when swiping LEFT -> show PREV status */}
         <div className="flex items-center gap-2 text-white font-bold">
-          {rightSideHint && (
-            <>
-              <span className="text-sm">{rightSideHint.label}</span>
-              {rightSideHint.icon}
-            </>
-          )}
+          {rightSideHint && <><span className="text-sm">{rightSideHint.label}</span>{rightSideHint.icon}</>}
         </div>
       </motion.div>
 
-      {/* Card Content */}
+      {/* Card Content - Neo Light Design */}
       <motion.div
         ref={cardRef}
         style={{ x, touchAction: "pan-y" }}
@@ -156,42 +142,76 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
         onPointerCancel={handlePointerCancel}
         onClick={() => !swiping && onClick?.(task)}
         className={cn(
-          "bg-white p-4 cursor-pointer hover:bg-gray-50",
-          "rounded-[20px] shadow-sm border border-gray-100",
-          "transition-shadow duration-200 active:scale-[0.98]",
-          "border-l-[6px]",
-          priorityColors[task.priority || "low"],
-          "group relative select-none"
+          "bg-white/90 backdrop-blur-sm p-4 cursor-pointer",
+          "rounded-2xl border border-gray-100",
+          "shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]", // Soft shadow
+          "transition-all duration-300",
+          dragging ? "shadow-xl scale-105 rotate-1 border-blue-200" : "hover:border-blue-200 hover:shadow-md hover:-translate-y-0.5"
         )}
       >
-        <div className="flex items-start gap-3">
-          <div data-drag-handle className="cursor-grab active:cursor-grabbing touch-none px-1" {...listeners}>
-            <GripVertical className="w-5 h-5 text-gray-300 opacity-100 mt-1" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-lg font-bold text-gray-800 leading-tight mb-1.5">{task.title}</h4>
+        <div className="flex gap-3">
+          {/* Left Indicator Strip (Priority) */}
+          <div className={cn("w-1 rounded-full self-stretch shrink-0", priority.color)} />
+
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            
+            {/* Header: Title & Menu */}
+            <div className="flex items-start justify-between gap-2">
+               <h4 className="text-[17px] font-bold text-gray-800 leading-snug tracking-tight">
+                {task.title}
+               </h4>
+               <div 
+                 data-drag-handle 
+                 className="cursor-grab active:cursor-grabbing p-1 -mr-2 -mt-1 text-gray-300 hover:text-gray-400 touch-none" 
+                 {...listeners}
+               >
+                 <GripVertical className="w-5 h-5" />
+               </div>
+            </div>
+
+            {/* Description */}
             {task.description && (
-              <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-3">{task.description}</p>
+              <p className="text-[14px] text-gray-500 line-clamp-2 leading-relaxed">
+                {task.description}
+              </p>
             )}
-            <div className="flex flex-wrap items-center gap-2 mt-auto">
+
+            {/* Footer: Meta Info */}
+            <div className="flex flex-wrap items-center gap-2 mt-1">
               {task.dueDate && (
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
-                  <Calendar className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 border border-gray-100 text-xs font-semibold text-gray-500">
+                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
                   {new Date(task.dueDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
-                </span>
+                </div>
               )}
+              
               {task.tags?.slice(0, 2).map((tag) => (
-                <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-blue-50 text-blue-600">
+                <span key={tag} className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                   <Tag className="w-3 h-3" />
                   {tag}
                 </span>
               ))}
+
               {task.assignee?.displayName && (
-                <div className="ml-auto flex items-center gap-1" title={`担当者: ${task.assignee.displayName}`}>
-                  <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold ring-2 ring-white shadow-sm">
-                    {task.assignee.displayName.slice(0, 2)}
+                <div className="ml-auto pl-2">
+                  <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center border-2 border-white shadow-sm" title={`担当者: ${task.assignee.displayName}`}>
+                    {task.assignee.avatarUrl ? (
+                        <img src={task.assignee.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : ( 
+                        <span className="text-[10px] font-bold text-indigo-600">
+                            {task.assignee.displayName.slice(0, 2)}
+                        </span>
+                    )}
                   </div>
                 </div>
+              )}
+              
+              {!task.assignee && (
+                 <div className="ml-auto pl-2">
+                    <div className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-200 text-gray-300">
+                        <User className="w-3.5 h-3.5" />
+                    </div>
+                 </div>
               )}
             </div>
           </div>
