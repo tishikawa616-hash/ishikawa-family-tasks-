@@ -271,12 +271,22 @@ function HomeContent() {
   };
 
   const openAddTaskModal = (columnId?: string) => {
+    if (window.innerWidth < 768) {
+        const params = new URLSearchParams();
+        if (columnId) params.set('status', columnId);
+        router.push(`/tasks/new?${params.toString()}`);
+        return;
+    }
     setEditingTask(null);
     setActiveColumnId(columnId);
     setIsModalOpen(true);
   };
 
   const handleTaskClick = (task: Task) => {
+    if (window.innerWidth < 768) {
+        router.push(`/tasks/${task.id}`);
+        return;
+    }
     setEditingTask(task);
     setIsModalOpen(true);
   };

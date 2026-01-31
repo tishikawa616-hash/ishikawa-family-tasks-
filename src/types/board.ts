@@ -19,6 +19,8 @@ export interface Task {
   recurrenceInterval?: number;
   recurrenceEndDate?: string;
   parentTaskId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Column {
