@@ -134,47 +134,51 @@ export function TaskForm({
 
         <div className="px-4 space-y-4 animate-enter-up" style={{ animationDelay: '50ms' }}>
             
-            {/* Section 2: Priority Cards */}
-            <div className="grid grid-cols-3 gap-2">
-                {[
-                    { value: "high", label: "高", emoji: "🔥", color: "text-red-600", bg: "bg-red-50 border-red-100 peer-checked:bg-red-100 peer-checked:border-red-200 peer-checked:ring-1 peer-checked:ring-red-300" },
-                    { value: "medium", label: "中", emoji: "☘️", color: "text-amber-600", bg: "bg-amber-50 border-amber-100 peer-checked:bg-amber-100 peer-checked:border-amber-200 peer-checked:ring-1 peer-checked:ring-amber-300" },
-                    { value: "low", label: "低", emoji: "🌊", color: "text-blue-600", bg: "bg-blue-50 border-blue-100 peer-checked:bg-blue-100 peer-checked:border-blue-200 peer-checked:ring-1 peer-checked:ring-blue-300" },
-                ].map((p) => (
-                    <label key={p.value} className="cursor-pointer group">
-                        <input
-                            type="radio"
-                            name="priority"
-                            value={p.value}
-                            defaultChecked={initialData?.priority === p.value || (!initialData && p.value === "medium")}
-                            className="peer sr-only"
-                        />
-                        <div className={cn(
-                            "flex flex-col items-center justify-center py-3 rounded-2xl border transition-all active:scale-95",
-                            "bg-white border-gray-100 hover:border-gray-200 shadow-sm",
-                            p.bg
-                        )}>
-                            <span className="text-xl mb-1 filter drop-shadow-sm">{p.emoji}</span>
-                            <span className={cn("text-xs font-bold", p.color)}>{p.label}</span>
-                        </div>
-                    </label>
-                ))}
+        <div className="px-4 space-y-6 animate-enter-up" style={{ animationDelay: '50ms' }}>
+            
+            {/* Section 2: Priority (No Icons, Large Targets) */}
+            <div>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">優先度</label>
+                <div className="grid grid-cols-3 gap-2">
+                    {[
+                        { value: "high", label: "高", color: "text-red-600", bg: "bg-white border-gray-200 peer-checked:bg-red-50 peer-checked:border-red-200 peer-checked:text-red-700" },
+                        { value: "medium", label: "中", color: "text-amber-600", bg: "bg-white border-gray-200 peer-checked:bg-amber-50 peer-checked:border-amber-200 peer-checked:text-amber-700" },
+                        { value: "low", label: "低", color: "text-blue-600", bg: "bg-white border-gray-200 peer-checked:bg-blue-50 peer-checked:border-blue-200 peer-checked:text-blue-700" },
+                    ].map((p) => (
+                        <label key={p.value} className="cursor-pointer group">
+                            <input
+                                type="radio"
+                                name="priority"
+                                value={p.value}
+                                defaultChecked={initialData?.priority === p.value || (!initialData && p.value === "medium")}
+                                className="peer sr-only"
+                            />
+                            <div className={cn(
+                                "flex items-center justify-center py-4 rounded-xl border-2 transition-all active:scale-[0.98]",
+                                "text-sm font-bold text-gray-500",
+                                p.bg
+                            )}>
+                                {p.label}
+                            </div>
+                        </label>
+                    ))}
+                </div>
             </div>
 
-            {/* Section 3: Schedule Card */}
-            <div className="bg-white/80 backdrop-blur-md border border-white/60 shadow-sm rounded-2xl p-1 overflow-hidden">
+            {/* Section 3: Schedule Card (Simpler) */}
+            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
                 {/* Due Date */}
-                <div className="relative border-b border-gray-100/80 p-1">
-                    <div className="flex items-center gap-3 px-3 py-2 bg-transparent rounded-xl hover:bg-gray-50/50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                            <Calendar className="w-4 h-4" />
+                <div className="relative border-b border-gray-100">
+                    <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                            <Calendar className="w-5 h-5" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <label className="text-xs font-bold text-gray-500 block mb-0.5">期限</label>
+                        <div className="flex-1 min-w-0 relative">
+                            <label className="text-xs font-bold text-gray-500 block mb-1">期限</label>
                             <input
                                 type="date"
                                 name="dueDate"
-                                className="w-full bg-transparent border-none p-0 text-sm font-semibold text-gray-900 focus:ring-0"
+                                className="w-full bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 h-8"
                                 defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : ""}
                             />
                         </div>
@@ -182,132 +186,136 @@ export function TaskForm({
                 </div>
 
                 {/* Recurrence Toggle */}
-                <div className="relative p-1">
-                     <div className="px-3 py-2">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                                <div className={cn(
-                                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors",
-                                    recurrenceEnabled ? "bg-indigo-50 text-indigo-600" : "bg-gray-100 text-gray-400"
-                                )}>
-                                    <RefreshCw className="w-4 h-4" />
-                                </div>
-                                <label className="text-sm font-bold text-gray-700">繰り返し</label>
+                <div className="p-4 md:py-3">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-4">
+                            <div className={cn(
+                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
+                                recurrenceEnabled ? "bg-indigo-50 text-indigo-600" : "bg-gray-100 text-gray-400"
+                            )}>
+                                <RefreshCw className="w-5 h-5" />
                             </div>
-                            <button
-                                type="button"
-                                role="switch"
-                                aria-checked={recurrenceEnabled}
-                                onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-                                className={cn(
-                                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20",
-                                    recurrenceEnabled ? "bg-indigo-500" : "bg-gray-200"
-                                )}
-                            >
-                                <span className={cn(
-                                    "inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out shadow-sm",
-                                    recurrenceEnabled ? "translate-x-6" : "translate-x-1"
-                                )} />
-                            </button>
+                            <label className="text-base font-bold text-gray-700">繰り返し</label>
                         </div>
-                        
-                        {recurrenceEnabled && (
-                            <div className="flex gap-2 pl-11 animate-in slide-in-from-top-2 fade-in duration-200">
-                                <div className="relative flex-1">
-                                    <select
-                                        name="recurrenceType"
-                                        defaultValue={initialData?.recurrenceType || "weekly"}
-                                        className="w-full appearance-none bg-gray-50 border-none rounded-lg py-2 pl-3 pr-8 text-xs font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500/20"
-                                    >
-                                        <option value="daily">毎日</option>
-                                        <option value="weekly">毎週</option>
-                                        <option value="monthly">毎月</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                                </div>
-                                <div className="relative w-24">
-                                    <input 
-                                        type="number" 
-                                        name="recurrenceInterval"
-                                        min="1"
-                                        placeholder="1"
-                                        defaultValue={initialData?.recurrenceInterval || 1}
-                                        className="w-full bg-gray-50 border-none rounded-lg py-2 px-3 text-xs font-bold text-gray-700 text-center focus:ring-2 focus:ring-indigo-500/20"
-                                    />
-                                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none">回毎</span>
-                                </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={recurrenceEnabled}
+                            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
+                            className={cn(
+                                "relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20",
+                                recurrenceEnabled ? "bg-indigo-500" : "bg-gray-200"
+                            )}
+                        >
+                            <span className={cn(
+                                "inline-block h-5 w-5 transform rounded-full bg-white transition duration-200 ease-in-out shadow-sm",
+                                recurrenceEnabled ? "translate-x-6" : "translate-x-1"
+                            )} />
+                        </button>
+                    </div>
+                    
+                    {recurrenceEnabled && (
+                        <div className="flex gap-3 pl-14 animate-in slide-in-from-top-2 fade-in duration-200">
+                            <div className="relative flex-1">
+                                <select
+                                    name="recurrenceType"
+                                    defaultValue={initialData?.recurrenceType || "weekly"}
+                                    className="w-full appearance-none bg-gray-50 border-none rounded-xl py-3 pl-4 pr-10 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500/20"
+                                >
+                                    <option value="daily">毎日</option>
+                                    <option value="weekly">毎週</option>
+                                    <option value="monthly">毎月</option>
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                             </div>
-                        )}
-                     </div>
+                            <div className="relative w-28">
+                                <input 
+                                    type="number" 
+                                    name="recurrenceInterval"
+                                    min="1"
+                                    placeholder="1"
+                                    defaultValue={initialData?.recurrenceInterval || 1}
+                                    className="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-gray-700 text-center focus:ring-2 focus:ring-indigo-500/20"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">回毎</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Section 4: Details Card */}
-            <div className="bg-white/80 backdrop-blur-md border border-white/60 shadow-sm rounded-2xl p-1 overflow-hidden divide-y divide-gray-100/80">
+            {/* Section 4: Details Card (Large Targets) */}
+            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden divide-y divide-gray-100">
                 
                 {/* Status */}
-                <div className="flex items-center gap-3 px-3 py-3 bg-transparent hover:bg-gray-50/50 transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-violet-50 text-violet-500 flex items-center justify-center shrink-0">
-                         <Briefcase className="w-4 h-4" />
+                <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
+                    <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-500 flex items-center justify-center shrink-0">
+                         <Briefcase className="w-5 h-5" />
                     </div>
-                    <div className="flex-1 min-w-0 relative">
-                         <label className="text-xs font-bold text-gray-500 block mb-0.5">ステータス</label>
-                         <select
-                            name="status"
-                            className="w-full appearance-none bg-transparent border-none p-0 text-sm font-semibold text-gray-900 focus:ring-0 cursor-pointer"
-                            defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                        >
-                            {columns.map(col => (
-                                <option key={col.id} value={col.id}>{col.title}</option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-0 bottom-0.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                    </div>
-                </div>
-
-                {/* Field (If available) */}
-                {fields.length > 0 && (
-                     <div className="flex items-center gap-3 px-3 py-3 bg-transparent hover:bg-gray-50/50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <MapPin className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0 relative">
-                            <label className="text-xs font-bold text-gray-500 block mb-0.5">圃場</label>
+                    <div className="flex-1 min-w-0">
+                         <label className="text-xs font-bold text-gray-500 block mb-1">ステータス</label>
+                         <div className="relative">
                             <select
-                                name="fieldId"
-                                defaultValue={initialData?.fieldId || ""}
-                                className="w-full appearance-none bg-transparent border-none p-0 text-sm font-semibold text-gray-900 focus:ring-0 cursor-pointer"
+                                name="status"
+                                className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
+                                defaultValue={initialData?.status || initialStatus || columns[0]?.id}
                             >
-                                <option value="">指定なし</option>
-                                {fields.map(f => (
-                                    <option key={f.id} value={f.id}>{f.name}</option>
+                                {columns.map(col => (
+                                    <option key={col.id} value={col.id}>{col.title}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-0 bottom-0.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                         </div>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
+                </div>
+
+                {/* Field */}
+                {fields.length > 0 && (
+                     <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <MapPin className="w-5 h-5" />
                         </div>
+                        <div className="flex-1 min-w-0">
+                            <label className="text-xs font-bold text-gray-500 block mb-1">圃場</label>
+                            <div className="relative">
+                                <select
+                                    name="fieldId"
+                                    defaultValue={initialData?.fieldId || ""}
+                                    className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
+                                >
+                                    <option value="">指定なし</option>
+                                    {fields.map(f => (
+                                        <option key={f.id} value={f.id}>{f.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
                     </div>
                 )}
 
-                {/* Assignee (If available) */}
+                {/* Assignee */}
                 {profiles.length > 0 && (
-                     <div className="flex items-center gap-3 px-3 py-3 bg-transparent hover:bg-gray-50/50 transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
-                            <User className="w-4 h-4" />
+                     <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
+                        <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
+                            <User className="w-5 h-5" />
                         </div>
-                        <div className="flex-1 min-w-0 relative">
-                            <label className="text-xs font-bold text-gray-500 block mb-0.5">担当者</label>
-                            <select
-                                name="assigneeId"
-                                defaultValue={initialData?.assigneeId || ""}
-                                className="w-full appearance-none bg-transparent border-none p-0 text-sm font-semibold text-gray-900 focus:ring-0 cursor-pointer"
-                            >
-                                <option value="">指定なし</option>
-                                {profiles.map(p => (
-                                    <option key={p.id} value={p.id}>{p.displayName}</option>
-                                ))}
-                            </select>
-                            <ChevronDown className="absolute right-0 bottom-0.5 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <div className="flex-1 min-w-0">
+                            <label className="text-xs font-bold text-gray-500 block mb-1">担当者</label>
+                            <div className="relative">
+                                <select
+                                    name="assigneeId"
+                                    defaultValue={initialData?.assigneeId || ""}
+                                    className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
+                                >
+                                    <option value="">指定なし</option>
+                                    {profiles.map(p => (
+                                        <option key={p.id} value={p.id}>{p.displayName}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
+                        <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
                     </div>
                 )}
             </div>
