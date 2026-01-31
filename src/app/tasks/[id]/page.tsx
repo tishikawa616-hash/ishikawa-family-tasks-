@@ -74,7 +74,21 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
     fetchTask();
   }, [id, supabase, router]);
 
-  const handleSubmit = async (taskData: any) => {
+  const handleSubmit = async (taskData: {
+    title: string;
+    description: string;
+    priority: "high" | "medium" | "low";
+    status: string;
+    dueDate: string;
+    assigneeId: string;
+    tags: string[];
+    fieldId?: string;
+    recurrence?: {
+      type: "daily" | "weekly" | "monthly";
+      interval: number;
+      endDate?: string;
+    };
+  }) => {
     try {
       const { error } = await supabase
         .from("tasks")

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { TaskForm } from "@/components/tasks/TaskForm";
@@ -15,14 +15,28 @@ const INITIAL_COLUMNS: Column[] = [
   { id: "col-done", title: "完了", tasks: [], color: "#10b981" },
 ];
 
-export default function NewTaskPage() {
+function NewTaskContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get("status") || "col-todo";
   const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (taskData: any) => {
+  const handleSubmit = async (taskData: {
+    title: string;
+    description: string;
+    priority: "high" | "medium" | "low";
+    status: string;
+    dueDate: string;
+    assigneeId: string;
+    tags: string[];
+    fieldId?: string;
+    recurrence?: {
+      type: "daily" | "weekly" | "monthly";
+      interval: number;
+      endDate?: string;
+    };
+  }) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
@@ -82,5 +96,13 @@ export default function NewTaskPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function NewTaskPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">読み込み中...</div>}>
+      <NewTaskContent />
+    </Suspense>
   );
 }
