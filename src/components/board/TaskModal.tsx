@@ -1,13 +1,14 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from "react";
-import { X, Trash2, Shovel, FileText, RefreshCw } from "lucide-react";
+import { X, Trash2, Shovel, FileText, RefreshCw, Calendar, Clock, ChevronDown } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { Drawer } from "vaul";
 import { Field } from "@/types/field";
 import { TaskComments } from "./TaskComments";
 import { WorkLogModal } from "./WorkLogModal";
+import { cn } from "@/lib/utils";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -61,20 +62,20 @@ export function TaskModal(props: TaskModalProps) {
     if (!props.isOpen) return null;
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/30 backdrop-blur-sm"
         onClick={() => props.onClose()}
       >
         <div
-          className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+          className="w-full max-w-2xl bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col border border-white/50"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 shrink-0">
-            <h2 className="text-xl font-bold text-white">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+            <h2 className="text-xl font-bold text-gray-800">
               {props.initialData ? "タスクを編集" : "新しいタスク"}
             </h2>
             <button
               onClick={props.onClose}
-              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              className="p-2 rounded-full bg-gray-100/50 hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -89,29 +90,29 @@ export function TaskModal(props: TaskModalProps) {
     <Drawer.Root 
       open={props.isOpen} 
       onOpenChange={(open) => !open && props.onClose()}
-      snapPoints={[1]}
-      activeSnapPoint={1}
+      snapPoints={[0.95]}
+      activeSnapPoint={0.95}
       setActiveSnapPoint={() => {}}
-      dismissible={false} // Prevent accidental close on drag
+      dismissible={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={props.onClose} />
+        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]" onClick={props.onClose} />
         <Drawer.Content 
-          className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-3xl bg-gray-50 z-50"
-          style={{ height: '92vh' }}
+          className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-[32px] bg-[#F7F9FC] z-50 after:hidden"
+          style={{ height: '95vh' }}
         >
           {/* Handle */}
-          <div className="w-full flex justify-center py-4 bg-white rounded-t-3xl shrink-0">
-            <div className="w-12 h-1.5 rounded-full bg-gray-300" />
+          <div className="w-full flex justify-center py-3 bg-transparent shrink-0">
+            <div className="w-12 h-1.5 rounded-full bg-gray-300/80" />
           </div>
           
           {/* Header */}
-          <div className="px-6 pb-4 bg-white shrink-0 flex justify-between items-center">
-            <Drawer.Title className="text-xl font-bold text-gray-900">
-              {props.initialData ? "タスクを編集" : "新しいタスク"}
+          <div className="px-6 pb-2 shrink-0 flex justify-between items-center">
+            <Drawer.Title className="text-2xl font-bold text-gray-900 tracking-tight">
+              {props.initialData ? "編集" : "新規作成"}
             </Drawer.Title>
-            <button onClick={props.onClose} className="p-2 bg-gray-100 rounded-full">
-                <X className="w-5 h-5 text-gray-500" />
+            <button onClick={props.onClose} className="p-2 bg-gray-200/50 rounded-full hover:bg-gray-200 transition-colors">
+                <X className="w-6 h-6 text-gray-500" />
             </button>
           </div>
 
@@ -183,181 +184,49 @@ function TaskForm({
           endDate: formData.get("recurrenceEndDate") as string || undefined
       } : undefined
     });
-
-    // Don't close immediately here to allow further edits if needed, 
-    // but the parent usually handles close.
-    // formRef.current.reset(); // Don't reset if we are just calling onSubmit which likely closes modal
   };
 
   return (
     <>
     <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
         
-        {/* タイトル - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label htmlFor="title" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-            タスク名 <span className="text-red-500">*</span>
-          </label>
+        {/* Title Input - Minimalist */}
+        <div className="glass-card p-1">
           <input
             type="text"
             name="title"
-            id="title"
             required
             autoFocus
             defaultValue={initialData?.title}
-            placeholder="何をしますか？"
-            className="w-full text-base font-semibold text-gray-900 placeholder:text-gray-300 bg-transparent border-0 border-b-2 border-gray-200 px-0 py-2 focus:ring-0 focus:border-blue-500 transition-colors"
+            placeholder="タスク名を入力..."
+            className="w-full text-xl font-bold text-gray-900 placeholder:text-gray-300 bg-transparent border-none px-4 py-4 focus:ring-0"
           />
         </div>
 
-        {/* 圃場選択 - カードスタイル */}
-        {fields.length > 0 && (
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <label htmlFor="fieldId" className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-               <Shovel className="w-4 h-4" /> 圃場 (畑)
-            </label>
-            <div className="relative">
-                <select
-                name="fieldId"
-                id="fieldId"
-                defaultValue={initialData?.fieldId || ""}
-                className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
-                >
-                <option value="">指定なし</option>
-                {fields.map((field) => (
-                    <option key={field.id} value={field.id}>
-                    {field.name}
-                    </option>
-                ))}
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    ▼
-                </div>
-            </div>
-          </div>
-        )}
-
-        {/* ステータス - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-            状態
-          </label>
-          <div className="grid grid-cols-4 gap-1.5">
-            {columns.map((col) => (
-              <label key={col.id} className="cursor-pointer">
-                <input
-                  type="radio"
-                  name="status"
-                  value={col.id}
-                  defaultChecked={
-                    initialData?.status === col.id ||
-                    (!initialData && (initialStatus === col.id || col.id === columns[0]?.id))
-                  }
-                  className="peer sr-only"
-                />
-                <span className="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg border transition-all
-                  peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500
-                  border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50">
-                  {col.title}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        {/* 期限 - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label htmlFor="dueDate" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
-            期限
-          </label>
-          <input
-            type="date"
-            name="dueDate"
-            id="dueDate"
-            defaultValue={
-              initialData?.dueDate
-                ? new Date(initialData.dueDate).toISOString().split("T")[0]
-                : ""
-            }
-            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
-          />
-        </div>
-
-        {/* 繰り返し設定 - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-            <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                <RefreshCw className="w-4 h-4" /> 繰り返し
-            </label>
-            <div className="space-y-4">
-                <div className="relative">
-                    <select
-                        name="recurrenceType"
-                        defaultValue={initialData?.recurrenceType || ""}
-                        className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
-                    >
-                        <option value="">繰り返しなし</option>
-                        <option value="daily">毎日</option>
-                        <option value="weekly">毎週</option>
-                        <option value="monthly">毎月</option>
-                    </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                        ▼
-                    </div>
-                </div>
-
-                <div className="flex gap-4">
-                    <div className="flex-1">
-                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">間隔</label>
-                        <div className="flex items-center gap-2">
-                            <input 
-                                type="number" 
-                                name="recurrenceInterval"
-                                min="1"
-                                defaultValue={initialData?.recurrenceInterval || 1}
-                            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
-                            />
-                            <span className="text-gray-500 text-sm font-medium whitespace-nowrap">回ごと</span>
-                        </div>
-                    </div>
-                    <div className="flex-1">
-                         <label className="block text-xs font-bold text-gray-400 uppercase mb-1">終了日 (任意)</label>
-                         <input 
-                            type="date" 
-                            name="recurrenceEndDate"
-                            defaultValue={initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate).toISOString().split('T')[0] : ""}
-                            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* 優先度 - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-            優先度
-          </label>
-          <div className="grid grid-cols-3 gap-2">
+        {/* Priority Selector - Segmented Control */}
+        <div>
+          <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">優先度</label>
+          <div className="bg-gray-100/80 p-1 rounded-xl flex gap-1">
             {[
-              { value: "high", label: "高", bgClass: "peer-checked:bg-red-500 peer-checked:border-red-500 peer-checked:shadow-red-500/25 hover:border-red-300 hover:bg-red-50" },
-              { value: "medium", label: "中", bgClass: "peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:shadow-amber-500/25 hover:border-amber-300 hover:bg-amber-50" },
-              { value: "low", label: "低", bgClass: "peer-checked:bg-green-500 peer-checked:border-green-500 peer-checked:shadow-green-500/25 hover:border-green-300 hover:bg-green-50" },
+              { value: "high", label: "高", color: "text-red-600", activeBg: "bg-white shadow-sm ring-1 ring-black/5" },
+              { value: "medium", label: "中", color: "text-amber-600", activeBg: "bg-white shadow-sm ring-1 ring-black/5" },
+              { value: "low", label: "低", color: "text-emerald-600", activeBg: "bg-white shadow-sm ring-1 ring-black/5" },
             ].map((p) => (
-              <label key={p.value} className="cursor-pointer">
+              <label key={p.value} className="flex-1 cursor-pointer relative">
                 <input
                   type="radio"
                   name="priority"
                   value={p.value}
-                  defaultChecked={
-                    initialData?.priority === p.value ||
-                    (!initialData && p.value === "medium")
-                  }
+                  defaultChecked={initialData?.priority === p.value || (!initialData && p.value === "medium")}
                   className="peer sr-only"
                 />
-                <span className={`flex items-center justify-center px-2 py-2 text-sm font-bold rounded-lg border transition-all
-                  peer-checked:text-white ${p.bgClass}
-                  border-gray-200 text-gray-600`}>
+                <span className={cn(
+                  "flex items-center justify-center py-2.5 rounded-lg text-sm font-bold transition-all",
+                  "text-gray-400 peer-checked:text-gray-900",
+                  "peer-checked:bg-white peer-checked:shadow-sm peer-checked:ring-1 peer-checked:ring-black/5"
+                )}>
+                  <span className={cn("mr-1.5 w-2 h-2 rounded-full", p.color)}></span>
                   {p.label}
                 </span>
               </label>
@@ -365,109 +234,175 @@ function TaskForm({
           </div>
         </div>
 
-        {/* 担当者 - カードスタイル */}
-        {profiles.length > 0 && (
-          <div className="bg-white rounded-xl p-4 shadow-sm">
-            <label htmlFor="assigneeId" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
-              担当者
-            </label>
-            <div className="relative">
-                <select
-                name="assigneeId"
-                id="assigneeId"
-                defaultValue={initialData?.assigneeId || ""}
-                className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
-                >
-                <option value="">指定なし</option>
-                {profiles.map((profile) => (
-                    <option key={profile.id} value={profile.id}>
-                    {profile.displayName || profile.email}
-                    </option>
-                ))}
-                </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
-                    ▼
-                </div>
+        <div className="grid grid-cols-2 gap-4">
+            {/* Status */}
+            <div>
+                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">状態</label>
+                 <div className="relative">
+                    <select
+                        name="status"
+                        className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        defaultValue={initialData?.status || initialStatus || columns[0]?.id}
+                    >
+                        {columns.map(col => (
+                            <option key={col.id} value={col.id}>{col.title}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                 </div>
             </div>
-          </div>
-        )}
 
-        {/* メモ - カードスタイル */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <label htmlFor="description" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
-            メモ
-          </label>
-          <textarea
+             {/* Due Date */}
+            <div>
+                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">期限</label>
+                 <div className="relative">
+                    <input
+                        type="date"
+                        name="dueDate"
+                        className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : ""}
+                    />
+                 </div>
+            </div>
+        </div>
+
+        {/* Fields & Assignee */}
+        <div className="space-y-4">
+             {fields.length > 0 && (
+                <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1 flex items-center gap-1">
+                        <Shovel className="w-3 h-3" /> 圃場
+                    </label>
+                    <div className="relative">
+                        <select
+                            name="fieldId"
+                            defaultValue={initialData?.fieldId || ""}
+                            className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        >
+                            <option value="">指定なし</option>
+                            {fields.map(f => (
+                                <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                </div>
+            )}
+
+            {profiles.length > 0 && (
+                 <div>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">担当者</label>
+                    <div className="relative">
+                        <select
+                            name="assigneeId"
+                            defaultValue={initialData?.assigneeId || ""}
+                            className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        >
+                            <option value="">指定なし</option>
+                            {profiles.map(p => (
+                                <option key={p.id} value={p.id}>{p.displayName}</option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                </div>
+            )}
+        </div>
+
+        {/* Recurrence - Expandable Style */}
+        <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100/50">
+             <label className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-3 block flex items-center gap-1">
+                <RefreshCw className="w-3 h-3" /> 繰り返し設定
+             </label>
+             <div className="flex gap-3">
+                 <div className="relative flex-1">
+                    <select
+                        name="recurrenceType"
+                        defaultValue={initialData?.recurrenceType || ""}
+                        className="w-full appearance-none bg-white border-none rounded-lg px-3 py-2 text-sm font-medium text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    >
+                        <option value="">なし</option>
+                        <option value="daily">毎日</option>
+                        <option value="weekly">毎週</option>
+                        <option value="monthly">毎月</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                 </div>
+                 <div className="relative w-24">
+                     <input 
+                        type="number" 
+                        name="recurrenceInterval"
+                        min="1"
+                        placeholder="1"
+                        defaultValue={initialData?.recurrenceInterval || 1}
+                        className="w-full bg-white border-none rounded-lg px-3 py-2 text-sm font-medium text-gray-700 shadow-sm focus:ring-2 focus:ring-blue-500/20 text-center"
+                     />
+                     <span className="absolute right-8 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">回毎</span>
+                 </div>
+             </div>
+        </div>
+
+        {/* Description */}
+        <div>
+           <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">メモ</label>
+           <textarea
             name="description"
-            id="description"
             rows={4}
             defaultValue={initialData?.description}
-            placeholder="詳細やメモを入力..."
-            className="w-full text-sm text-gray-900 placeholder:text-gray-400 bg-gray-50 border-2 border-gray-200 rounded-lg px-3 py-3 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all resize-none"
+            placeholder="詳細を入力してください..."
+            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
           />
         </div>
 
-        {/* Work Log Button & Comments (Only for existing tasks) */}
+        {/* Existing Task Actions */}
         {initialData && (
-            <>
-                {/* Work Log Button */}
-                <div className="bg-white rounded-xl p-4 shadow-sm">
-                    <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
-                        作業記録
-                    </label>
+            <div className="space-y-3 pt-2">
+                <button
+                    type="button"
+                    onClick={() => setIsWorkLogOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-50 text-emerald-600 font-bold rounded-xl border border-emerald-100 hover:bg-emerald-100/80 transition-all active:scale-[0.98]"
+                >
+                    <FileText className="w-5 h-5" />
+                    作業記録
+                </button>
+                
+                <TaskComments taskId={initialData.id} />
+                
+                {onDelete && (
                     <button
                         type="button"
-                        onClick={() => setIsWorkLogOpen(true)}
-                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-50 text-emerald-600 font-bold rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-100"
+                        onClick={() => {
+                        if (confirm("削除しますか？")) {
+                            onDelete();
+                        }
+                        }}
+                        className="w-full flex items-center justify-center gap-2 py-3.5 text-red-500 font-semibold bg-gray-50 hover:bg-red-50 rounded-xl transition-all active:scale-[0.98]"
                     >
-                        <FileText className="w-5 h-5" />
-                        作業記録を追加・表示
+                        <Trash2 className="w-4 h-4 opacity-70" />
+                        削除
                     </button>
-                    <p className="text-xs text-gray-400 mt-2 text-center">
-                        写真付きで日報を作成できます
-                    </p>
-                </div>
-
-                {/* Comments */}
-                <TaskComments taskId={initialData.id} />
-            </>
+                )}
+            </div>
         )}
 
-        {/* 削除ボタン */}
-        {initialData && onDelete && (
-          <button
-            type="button"
-            onClick={() => {
-              if (confirm("削除しますか？")) {
-                onDelete();
-              }
-            }}
-            className="w-full flex items-center justify-center gap-2 py-4 text-red-500 font-semibold bg-red-50 hover:bg-red-100 rounded-2xl transition-colors"
-          >
-            <Trash2 className="w-5 h-5" />
-            このタスクを削除
-          </button>
-        )}
-
-        {/* 下部スペーサー */}
-        <div className="h-24" />
+        <div className="h-24" /> {/* Bottom spacer */}
       </div>
 
-      {/* フッター - フローティングスタイル */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 py-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe-bottom shadow-2xl shadow-black/5 shrink-0 z-10">
-        <div className="flex gap-3">
+      {/* Floating Footer */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 pt-2 bg-gradient-to-t from-white via-white to-transparent dark:from-gray-900 pb-safe-bottom z-10">
+        <div className="flex gap-3 shadow-2xl shadow-gray-200/50 rounded-2xl p-1 bg-white ring-1 ring-gray-100">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-4 text-base font-bold text-gray-600 bg-gray-100 rounded-2xl hover:bg-gray-200 active:scale-98 transition-all"
+            className="flex-1 py-3.5 text-sm font-bold text-gray-500 bg-transparent hover:bg-gray-50 rounded-xl transition-all"
           >
             キャンセル
           </button>
           <button
             type="submit"
-            className="flex-2 py-4 text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 active:scale-98 transition-all"
+            className="flex-[2] py-3.5 text-sm font-bold text-white bg-linear-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 active:scale-[0.98] transition-all"
           >
-            {initialData ? "保存する" : "追加する"}
+            {initialData ? "保存" : "作成"}
           </button>
         </div>
       </div>
