@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from "react";
-import { X, Trash2, Shovel, FileText } from "lucide-react";
+import { X, Trash2, Shovel, FileText, RefreshCw } from "lucide-react";
 import { Column, Task, Profile } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { Drawer } from "vaul";
@@ -21,6 +21,11 @@ interface TaskModalProps {
     assigneeId: string;
     tags: string[];
     fieldId?: string;
+    recurrence?: {
+      type: "daily" | "weekly" | "monthly";
+      interval: number;
+      endDate?: string;
+    };
   }) => void;
   onDelete?: () => void;
   columns: Column[];
@@ -102,7 +107,7 @@ export function TaskModal(props: TaskModalProps) {
           
           {/* Header */}
           <div className="px-6 pb-4 bg-white shrink-0 flex justify-between items-center">
-            <Drawer.Title className="text-2xl font-bold text-gray-900">
+            <Drawer.Title className="text-xl font-bold text-gray-900">
               {props.initialData ? "タスクを編集" : "新しいタスク"}
             </Drawer.Title>
             <button onClick={props.onClose} className="p-2 bg-gray-100 rounded-full">
@@ -172,6 +177,11 @@ function TaskForm({
       assigneeId: formData.get("assigneeId") as string,
       fieldId: formData.get("fieldId") as string,
       tags: [],
+      recurrence: formData.get("recurrenceType") ? {
+          type: formData.get("recurrenceType") as "daily" | "weekly" | "monthly",
+          interval: Number(formData.get("recurrenceInterval")) || 1,
+          endDate: formData.get("recurrenceEndDate") as string || undefined
+      } : undefined
     });
 
     // Don't close immediately here to allow further edits if needed, 
@@ -181,12 +191,12 @@ function TaskForm({
 
   return (
     <>
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
         
         {/* タイトル - カードスタイル */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <label htmlFor="title" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <label htmlFor="title" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
             タスク名 <span className="text-red-500">*</span>
           </label>
           <input
@@ -197,14 +207,14 @@ function TaskForm({
             autoFocus
             defaultValue={initialData?.title}
             placeholder="何をしますか？"
-            className="w-full text-xl font-semibold text-gray-900 placeholder:text-gray-300 bg-transparent border-0 border-b-2 border-gray-200 px-0 py-3 focus:ring-0 focus:border-blue-500 transition-colors"
+            className="w-full text-base font-semibold text-gray-900 placeholder:text-gray-300 bg-transparent border-0 border-b-2 border-gray-200 px-0 py-2 focus:ring-0 focus:border-blue-500 transition-colors"
           />
         </div>
 
         {/* 圃場選択 - カードスタイル */}
         {fields.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <label htmlFor="fieldId" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <label htmlFor="fieldId" className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
                <Shovel className="w-4 h-4" /> 圃場 (畑)
             </label>
             <div className="relative">
@@ -212,7 +222,7 @@ function TaskForm({
                 name="fieldId"
                 id="fieldId"
                 defaultValue={initialData?.fieldId || ""}
-                className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
                 >
                 <option value="">指定なし</option>
                 {fields.map((field) => (
@@ -229,11 +239,11 @@ function TaskForm({
         )}
 
         {/* ステータス - カードスタイル */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
             状態
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-1.5">
             {columns.map((col) => (
               <label key={col.id} className="cursor-pointer">
                 <input
@@ -246,8 +256,8 @@ function TaskForm({
                   }
                   className="peer sr-only"
                 />
-                <span className="flex items-center justify-center px-4 py-4 text-base font-semibold rounded-xl border-2 transition-all
-                  peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 peer-checked:shadow-lg peer-checked:shadow-blue-500/25
+                <span className="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg border transition-all
+                  peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500
                   border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50">
                   {col.title}
                 </span>
@@ -257,7 +267,7 @@ function TaskForm({
         </div>
 
         {/* 期限 - カードスタイル */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
           <label htmlFor="dueDate" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             期限
           </label>
@@ -270,16 +280,65 @@ function TaskForm({
                 ? new Date(initialData.dueDate).toISOString().split("T")[0]
                 : ""
             }
-            className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
+            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
           />
         </div>
 
+        {/* 繰り返し設定 - カードスタイル */}
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+            <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" /> 繰り返し
+            </label>
+            <div className="space-y-4">
+                <div className="relative">
+                    <select
+                        name="recurrenceType"
+                        defaultValue={initialData?.recurrenceType || ""}
+                        className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                    >
+                        <option value="">繰り返しなし</option>
+                        <option value="daily">毎日</option>
+                        <option value="weekly">毎週</option>
+                        <option value="monthly">毎月</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                        ▼
+                    </div>
+                </div>
+
+                <div className="flex gap-4">
+                    <div className="flex-1">
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">間隔</label>
+                        <div className="flex items-center gap-2">
+                            <input 
+                                type="number" 
+                                name="recurrenceInterval"
+                                min="1"
+                                defaultValue={initialData?.recurrenceInterval || 1}
+                            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
+                            />
+                            <span className="text-gray-500 text-sm font-medium whitespace-nowrap">回ごと</span>
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                         <label className="block text-xs font-bold text-gray-400 uppercase mb-1">終了日 (任意)</label>
+                         <input 
+                            type="date" 
+                            name="recurrenceEndDate"
+                            defaultValue={initialData?.recurrenceEndDate ? new Date(initialData.recurrenceEndDate).toISOString().split('T')[0] : ""}
+                            className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {/* 優先度 - カードスタイル */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
-          <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-4">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
             優先度
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { value: "high", label: "高", bgClass: "peer-checked:bg-red-500 peer-checked:border-red-500 peer-checked:shadow-red-500/25 hover:border-red-300 hover:bg-red-50" },
               { value: "medium", label: "中", bgClass: "peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:shadow-amber-500/25 hover:border-amber-300 hover:bg-amber-50" },
@@ -296,8 +355,8 @@ function TaskForm({
                   }
                   className="peer sr-only"
                 />
-                <span className={`flex items-center justify-center px-4 py-4 text-base font-bold rounded-xl border-2 transition-all
-                  peer-checked:text-white peer-checked:shadow-lg ${p.bgClass}
+                <span className={`flex items-center justify-center px-2 py-2 text-sm font-bold rounded-lg border transition-all
+                  peer-checked:text-white ${p.bgClass}
                   border-gray-200 text-gray-600`}>
                   {p.label}
                 </span>
@@ -308,8 +367,8 @@ function TaskForm({
 
         {/* 担当者 - カードスタイル */}
         {profiles.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <label htmlFor="assigneeId" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="bg-white rounded-xl p-4 shadow-sm">
+            <label htmlFor="assigneeId" className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
               担当者
             </label>
             <div className="relative">
@@ -317,7 +376,7 @@ function TaskForm({
                 name="assigneeId"
                 id="assigneeId"
                 defaultValue={initialData?.assigneeId || ""}
-                className="w-full text-lg font-semibold text-gray-900 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
+                className="w-full text-base font-medium text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all appearance-none"
                 >
                 <option value="">指定なし</option>
                 {profiles.map((profile) => (
@@ -334,7 +393,7 @@ function TaskForm({
         )}
 
         {/* メモ - カードスタイル */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm">
+        <div className="bg-white rounded-xl p-4 shadow-sm">
           <label htmlFor="description" className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
             メモ
           </label>
@@ -344,7 +403,7 @@ function TaskForm({
             rows={4}
             defaultValue={initialData?.description}
             placeholder="詳細やメモを入力..."
-            className="w-full text-base text-gray-900 placeholder:text-gray-400 bg-gray-50 border-2 border-gray-200 rounded-xl px-4 py-4 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all resize-none"
+            className="w-full text-sm text-gray-900 placeholder:text-gray-400 bg-gray-50 border-2 border-gray-200 rounded-lg px-3 py-3 focus:ring-0 focus:border-blue-500 focus:bg-white transition-all resize-none"
           />
         </div>
 
@@ -352,7 +411,7 @@ function TaskForm({
         {initialData && (
             <>
                 {/* Work Log Button */}
-                <div className="bg-white rounded-2xl p-5 shadow-sm">
+                <div className="bg-white rounded-xl p-4 shadow-sm">
                     <label className="block text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
                         作業記録
                     </label>

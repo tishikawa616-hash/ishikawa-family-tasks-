@@ -73,6 +73,10 @@ function HomeContent() {
         .from("tasks")
         .select(`
           *,
+          recurrence_type,
+          recurrence_interval,
+          recurrence_end_date,
+          parent_task_id,
           assignee:assignee_id (
             id,
             email,
@@ -105,6 +109,10 @@ function HomeContent() {
                   assigneeId: t.assignee_id,
                   // Map field_id to fieldId
                   fieldId: t.field_id,
+                  recurrenceType: t.recurrence_type,
+                  recurrenceInterval: t.recurrence_interval,
+                  recurrenceEndDate: t.recurrence_end_date,
+                  parentTaskId: t.parent_task_id,
                   assignee: assigneeData ? {
                     id: assigneeData.id,
                     displayName: assigneeData.display_name || assigneeData.email,
@@ -194,6 +202,59 @@ function HomeContent() {
       };
     });
     
+    // Recurrence Logic
+    if (newStatus === "col-done") {
+        const taskToCheck = board.columns
+            .flatMap(col => col.tasks)
+            .find(t => t.id === taskId);
+
+        if (taskToCheck && taskToCheck.recurrenceType && taskToCheck.dueDate) {
+            import("date-fns").then(({ addDays, addWeeks, addMonths }) => {
+                const currentDueDate = new Date(taskToCheck.dueDate!);
+                let nextDueDate: Date | null = null;
+                const interval = taskToCheck.recurrenceInterval || 1;
+
+                switch (taskToCheck.recurrenceType) {
+                    case "daily":
+                        nextDueDate = addDays(currentDueDate, interval);
+                        break;
+                    case "weekly":
+                        nextDueDate = addWeeks(currentDueDate, interval);
+                        break;
+                    case "monthly":
+                        nextDueDate = addMonths(currentDueDate, interval);
+                        break;
+                }
+
+                if (nextDueDate) {
+                    // Check End Date
+                    if (taskToCheck.recurrenceEndDate && new Date(taskToCheck.recurrenceEndDate) < nextDueDate) {
+                        return; // Recurrence ended
+                    }
+
+                    // Create Next Task
+                    supabase.from("tasks").insert({
+                        title: taskToCheck.title,
+                        description: taskToCheck.description,
+                        priority: taskToCheck.priority,
+                        status: "col-todo", // Reset to Todo
+                        due_date: nextDueDate.toISOString(),
+                        assignee_id: taskToCheck.assigneeId,
+                        tags: taskToCheck.tags,
+                        field_id: taskToCheck.fieldId,
+                        recurrence_type: taskToCheck.recurrenceType,
+                        recurrence_interval: taskToCheck.recurrenceInterval,
+                        recurrence_end_date: taskToCheck.recurrenceEndDate,
+                        parent_task_id: taskToCheck.parentTaskId || taskToCheck.id // Chain it or link to original? Let's link to immediate parent if exists, or this one. actually immediate parent might be better for hierarchy but for simple chain, just linking to "previous" is fine. Schema comment said "original task", but for infinite chain, maybe just keep pointing to the *first* one? Or just don't worry about it for now. Let's make it simple: point to the task that spawned it.
+                    }).then(({ error }) => {
+                        if (error) console.error("Error creating recurring task:", error);
+                        else fetchTasks(); // Refresh to show new task
+                    });
+                }
+            });
+        }
+    }
+
     // Persist to database
     try {
       const { error } = await supabase
@@ -249,6 +310,11 @@ function HomeContent() {
     assigneeId: string;
     tags: string[];
     fieldId?: string;
+    recurrence?: {
+        type: "daily" | "weekly" | "monthly";
+        interval: number;
+        endDate?: string;
+    };
   }) => {
     try {
       if (editingTask) {
@@ -264,6 +330,9 @@ function HomeContent() {
             assignee_id: taskData.assigneeId || null,
             tags: taskData.tags,
             field_id: taskData.fieldId || null,
+            recurrence_type: taskData.recurrence?.type || null,
+            recurrence_interval: taskData.recurrence?.interval || null,
+            recurrence_end_date: taskData.recurrence?.endDate || null,
           })
           .eq("id", editingTask.id);
 
@@ -285,6 +354,9 @@ function HomeContent() {
             assignee_id: taskData.assigneeId || null,
             tags: taskData.tags, 
             field_id: taskData.fieldId || null,
+            recurrence_type: taskData.recurrence?.type || null,
+            recurrence_interval: taskData.recurrence?.interval || null,
+            recurrence_end_date: taskData.recurrence?.endDate || null,
           });
 
         if (error) throw error;
