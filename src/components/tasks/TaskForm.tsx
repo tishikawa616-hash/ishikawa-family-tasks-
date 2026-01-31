@@ -132,8 +132,6 @@ export function TaskForm({
             </div>
         </div>
 
-        <div className="px-4 space-y-4 animate-enter-up" style={{ animationDelay: '50ms' }}>
-            
         <div className="px-4 space-y-6 animate-enter-up" style={{ animationDelay: '50ms' }}>
             
             {/* Section 2: Priority (No Icons, Large Targets) */}
