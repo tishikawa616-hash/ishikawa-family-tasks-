@@ -45,10 +45,11 @@
     - ヘッダーの通知アイコン削除。
   - **PWA Push通知 & UX**:
     - Push通知基盤の実装（VAPID, Service Worker, Subscription）。
+    - サーバーサイド通知配信（Supabase Webhook & Edge Functions/API）。
     - トースト通知（Toast）によるフィードバック実装。
     - モバイルヘッダーのセーフエリア対応。
 
 ### 次回のタスク
 
 1. **繰り返しタスク**: ロジックの実装とUI統合。
-2. **通知トリガー**: サーバーサイドからのプッシュ配信実装。
+2. **作業ログのオフライン対応**: Service Workerによるバックグラウンド同期。

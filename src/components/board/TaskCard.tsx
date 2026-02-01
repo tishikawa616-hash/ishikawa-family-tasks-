@@ -4,7 +4,7 @@ import { useState, useRef, PointerEvent } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { GripVertical, Calendar, Tag, Check, Play, Clock, User } from "lucide-react";
+import { GripVertical, Calendar, Tag, Check, Play, Clock, User, RefreshCw } from "lucide-react";
 import type { Task } from "@/types/board";
 import { cn } from "@/lib/utils";
 
@@ -183,6 +183,13 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
                   <Calendar className="w-3.5 h-3.5 text-gray-400" />
                   {new Date(task.dueDate).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
                 </div>
+              )}
+
+              {task.recurrenceType && (
+                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-xs font-semibold text-indigo-600">
+                   <div className="w-3.5 h-3.5"><RefreshCw className="w-full h-full" /></div>
+                   {task.recurrenceType === "daily" ? "毎日" : task.recurrenceType === "weekly" ? "毎週" : "毎月"}
+                 </div>
               )}
               
               {task.tags?.slice(0, 2).map((tag) => (

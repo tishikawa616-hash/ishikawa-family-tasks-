@@ -2,15 +2,21 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 
-// Init web-push
-webpush.setVapidDetails(
-  "mailto:example@yourdomain.org",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+// Init web-push (lazy init inside handler to avoid build-time errors if env vars are missing)
+const initWebPush = () => {
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    throw new Error("VAPID keys are missing");
+  }
+  webpush.setVapidDetails(
+    "mailto:ishikawa-family-tasks@vercel.app",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+};
 
 export async function POST(req: Request) {
   try {
+    initWebPush();
     const body = await req.json();
     const { record, type } = body;
 
