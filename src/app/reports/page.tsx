@@ -78,7 +78,7 @@ export default function ReportsPage() {
       const { data: tasksData } = await supabase
         .from("tasks")
         .select("*")
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (tasksData) {
           console.log("ALL fetched tasks (before filter):", tasksData);
