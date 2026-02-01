@@ -299,51 +299,68 @@ export default function ReportsPage() {
                 <h3 className="font-bold text-slate-700">作業履歴</h3>
               </div>
               <div className="divide-y divide-slate-100">
-                {selectedWorkLogs.length === 0 ? (
-                  <p className="text-center text-slate-400 py-8">記録がありません</p>
-                ) : (
-                  selectedWorkLogs.slice(0, 10).map((log) => (
-                    <div key={log.id} className="px-4 py-3">
-                      <p className="font-medium text-slate-800 mb-1">{log.task?.title || "不明"}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-500">
-                          {new Date(log.started_at).toLocaleDateString('ja-JP')}
-                        </span>
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                          {Math.round(log.duration * 10) / 10} 時間
-                        </span>
-                      </div>
-                      {log.notes && (
-                        <p className="text-sm text-slate-500 mt-2 bg-slate-50 p-2 rounded-lg">{log.notes}</p>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
+    <div className="flex flex-col min-h-dvh w-full bg-[#F7F9FC] pb-32 md:pb-12 safe-p-bottom">
+      {/* Header */}
+      <header className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm safe-p-top">
+        <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
+                <PieChart className="w-6 h-6" />
             </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">分析レポート</h1>
+            <p className="text-xs text-gray-500 font-medium tracking-wide">Work Analysis</p>
+          </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          {/* PDF Export Button */}
+          <button
+            onClick={() => {
+                // Determine what to export based on view
+                if (selectedFieldId) {
+                   const element = document.getElementById("field-detail-report");
+                   if (element) generateFieldReportPDF(element, selectedField?.name || "Field Report");
+                } else {
+                   const element = document.getElementById("summary-report");
+                   if (element) generateReportPDF(element);
+                }
+            }}
+            className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
+            title="PDFをダウンロード"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
 
-            {/* Completed Tasks */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <h3 className="font-bold text-slate-700">完了したタスク</h3>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {selectedTasks.length === 0 ? (
-                  <p className="text-center text-slate-400 py-8">完了タスクがありません</p>
-                ) : (
-                  selectedTasks.slice(0, 5).map((task) => (
-                    <div key={task.id} className="px-4 py-3 flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-slate-800 truncate">{task.title}</p>
-                        <p className="text-xs text-slate-400">{new Date(task.updated_at).toLocaleDateString('ja-JP')}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </motion.div>
+      {/* Main Content */}
+      <div id="summary-report" className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto w-full">
+        {/* Date Selector */}
+        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+           <button 
+             onClick={() => moveDate(-1)}
+             className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+           >
+             <ChevronLeft className="w-5 h-5" />
+           </button>
+           <span className="font-bold text-gray-700 tabular-nums">
+             {format(currentDate, "yyyy年 M月", { locale: ja })}
+           </span>
+           <button 
+             onClick={() => moveDate(1)}
+             className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+           >
+             <ChevronRight className="w-5 h-5" />
+           </button>
+        </div>
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-pulse">
+            <div className="w-12 h-12 bg-gray-200 rounded-full mb-4" />
+            <div className="h-4 w-32 bg-gray-200 rounded" />
+          </div>
         ) : (
           /* === DASHBOARD VIEW === */
           <motion.div 
@@ -378,27 +395,21 @@ export default function ReportsPage() {
             {fieldStats.length > 0 && (
               <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <h3 className="font-bold text-slate-700 mb-4">圃場別の作業時間</h3>
-                <div className="h-64">
+                <div style={{ height: chartHeight }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 20 }}>
+                    <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" tick={{fontSize: 11, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
+                      <XAxis type="number" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                       <YAxis 
-                        type="category" 
                         dataKey="name" 
-                        tick={{fontSize: 12, fill: '#475569'}} 
-                        axisLine={false} 
-                        tickLine={false}
-                        width={80}
+                        type="category" 
+                        width={100} 
+                        stroke="#64748b" 
+                        fontSize={12} 
+                        tickLine={false} 
+                        axisLine={false}
                       />
                       <Tooltip 
-                        cursor={{fill: '#f8fafc'}}
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-slate-800 text-white text-sm rounded-lg py-2 px-3 shadow-xl">
-                                <p className="font-bold">{data.name}</p>
                                 <p>{data.hours} 時間</p>
                               </div>
                             );
