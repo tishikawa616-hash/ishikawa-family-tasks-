@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WeatherWidget } from "@/components/weather/WeatherWidget";
 import { Field } from "@/types/field";
+import { OfflineSyncManager } from "@/components/pwa/OfflineSyncManager";
 
 const INITIAL_COLUMNS: Column[] = [
   { id: "col-todo", title: "予定", tasks: [], color: "#0ea5e9" }, // Sky-500
@@ -478,6 +479,7 @@ function HomeContent() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden relative pb-20 md:pb-0 flex flex-col">
+        <OfflineSyncManager />
         {/* Weather Widget Section */}
         {currentView === "board" && (
             <div className="px-4 pt-4 md:px-6 shrink-0">

@@ -32,22 +32,36 @@
 ### 実装済み
 
 - **農業機能拡張**:
+  - **繰り返しタスク**:
+    - 毎日/毎週/毎月の繰り返し設定。
+    - タスク完了時の次回タスク自動作成。
+    - UIでの繰り返しアイコン表示。
   - **圃場管理**: `/fields`ページ、テーブル、BottomNavタブ実装。
   - **天気連携**: Open-Meteo API、およびホーム画面への`WeatherWidget`統合。
-  - **タスク機能高度化**:
-    - `TaskModal`での圃場選択機能。
-    - `TaskModal`内でのコメント、作業記録（`WorkLogModal`）機能統合。
-    - ホーム画面での「圃場別フィルタリング」機能。
-  - **レポート機能**:
-    - 月末レポートページ（`/reports`）の実装。`recharts`による作業時間・タスク消化の可視化。
-    - BottomNavへの「分析」タブ追加。
-  - **UI整理**:
-    - ヘッダーの通知アイコン削除。
-  - **PWA Push通知 & UX**:
-    - Push通知基盤の実装（VAPID, Service Worker, Subscription）。
-    - サーバーサイド通知配信（Supabase Webhook & Edge Functions/API）。
-    - トースト通知（Toast）によるフィードバック実装。
-    - モバイルヘッダーのセーフエリア対応。
+
+<!-- ... (omitted intermediate lines for brevity if needed, but safer to just insert at top of implemented and remove from next) ... -->
+
+### 次回のタスク
+
+1. **作業ログのオフライン対応**:
+   - IndexedDBによる作業記録の一時保存。
+   - Service Worker / Background Syncによる自動同期。
+   - オフライン時のUI表示（「未送信あり」など）。
+
+- **タスク機能高度化**:
+  - `TaskModal`での圃場選択機能。
+  - `TaskModal`内でのコメント、作業記録（`WorkLogModal`）機能統合。
+  - ホーム画面での「圃場別フィルタリング」機能。
+- **レポート機能**:
+  - 月末レポートページ（`/reports`）の実装。`recharts`による作業時間・タスク消化の可視化。
+  - BottomNavへの「分析」タブ追加。
+- **UI整理**:
+  - ヘッダーの通知アイコン削除。
+- **PWA Push通知 & UX**:
+  - Push通知基盤の実装（VAPID, Service Worker, Subscription）。
+  - サーバーサイド通知配信（Supabase Webhook & Edge Functions/API）。
+  - トースト通知（Toast）によるフィードバック実装。
+  - モバイルヘッダーのセーフエリア対応。
 
 ### 次回のタスク
 

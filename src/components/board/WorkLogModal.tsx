@@ -48,31 +48,67 @@ export function WorkLogModal({ isOpen, onClose, taskId, taskTitle }: WorkLogModa
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Allow offline save even if auth check fails (might be cached session or completely offline)
+      // But ideally we need user ID. For PWA, session persists. 
+      // If completely offline and no session, we might verify later. 
+      // For now, assume user is required but handle error if offline.
 
-      // Upload photos to Supabase Storage
-      const photoUrls: string[] = [];
-      for (const photo of photos) {
-        const fileName = `${taskId}/${Date.now()}-${photo.name}`;
-        const { error } = await supabase.storage
-          .from("work-logs")
-          .upload(fileName, photo);
+      const isOnline = navigator.onLine;
 
-        if (!error) {
-          const { data } = supabase.storage.from("work-logs").getPublicUrl(fileName);
-          photoUrls.push(data.publicUrl);
+      if (isOnline && user) {
+        // --- ONLINE FLOW ---
+        // Upload photos to Supabase Storage
+        const photoUrls: string[] = [];
+        for (const photo of photos) {
+          const fileName = `${taskId}/${Date.now()}-${photo.name}`;
+          const { error } = await supabase.storage
+            .from("work-logs")
+            .upload(fileName, photo);
+
+          if (!error) {
+            const { data } = supabase.storage.from("work-logs").getPublicUrl(fileName);
+            photoUrls.push(data.publicUrl);
+          }
         }
-      }
 
-      // Create work log entry
-      await supabase.from("work_logs").insert({
-        task_id: taskId,
-        user_id: user.id,
-        started_at: startTime ? new Date(`2000-01-01T${startTime}`).toISOString() : null,
-        ended_at: endTime ? new Date(`2000-01-01T${endTime}`).toISOString() : null,
-        photo_urls: photoUrls.length > 0 ? photoUrls : null,
-        notes: notes.trim() || null,
-      });
+        // Create work log entry
+        const { error: insertError } = await supabase.from("work_logs").insert({
+          task_id: taskId,
+          user_id: user.id,
+          started_at: startTime ? new Date(`2000-01-01T${startTime}`).toISOString() : null,
+          ended_at: endTime ? new Date(`2000-01-01T${endTime}`).toISOString() : null,
+          photo_urls: photoUrls.length > 0 ? photoUrls : null,
+          notes: notes.trim() || null,
+        });
+        
+        if (insertError) throw insertError;
+        alert("保存しました");
+
+      } else {
+        // --- OFFLINE FLOW ---
+        // Convert images to Base64 for local storage
+        const base64Images: string[] = [];
+        for (const photo of photos) {
+            const base64 = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target?.result as string);
+                reader.readAsDataURL(photo);
+            });
+            base64Images.push(base64);
+        }
+
+        // Save to Dexie
+        const { db } = await import("@/lib/db");
+        await db.workLogs.add({
+            taskId,
+            content: notes.trim(),
+            images: base64Images,
+            createdAt: new Date().toISOString(),
+            synced: 0
+        });
+        
+        alert("オフラインのため、端末に一時保存しました。ネット復帰時に自動送信されます。");
+      }
 
       // Reset and close
       setNotes("");
@@ -83,6 +119,7 @@ export function WorkLogModal({ isOpen, onClose, taskId, taskTitle }: WorkLogModa
       onClose();
     } catch (error) {
       console.error("Work log save error:", error);
+      alert("保存に失敗しました");
     } finally {
       setLoading(false);
     }
