@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { WeatherWidget } from "@/components/weather/WeatherWidget";
 import { Field } from "@/types/field";
 import { OfflineSyncManager } from "@/components/pwa/OfflineSyncManager";
+import { CompletionWorkLogModal } from "@/components/board/CompletionWorkLogModal";
 
 const INITIAL_COLUMNS: Column[] = [
   { id: "col-todo", title: "予定", tasks: [], color: "#0ea5e9" }, // Sky-500
@@ -37,6 +38,7 @@ function HomeContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | undefined>(undefined);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [completionTask, setCompletionTask] = useState<Task | null>(null);
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -203,17 +205,20 @@ function HomeContent() {
       };
     });
     
-    // Recurrence Logic
+    // Recurrence Logic & Completion Modal
     if (newStatus === "col-done") {
         const taskToCheck = board.columns
             .flatMap(col => col.tasks)
             .find(t => t.id === taskId);
 
-        if (taskToCheck && taskToCheck.recurrenceType && taskToCheck.dueDate) {
-            import("date-fns").then(({ addDays, addWeeks, addMonths }) => {
-                const currentDueDate = new Date(taskToCheck.dueDate!);
-                let nextDueDate: Date | null = null;
-                const interval = taskToCheck.recurrenceInterval || 1;
+        if (taskToCheck) {
+             setCompletionTask(taskToCheck);
+
+             if (taskToCheck.recurrenceType && taskToCheck.dueDate) {
+                import("date-fns").then(({ addDays, addWeeks, addMonths }) => {
+                    const currentDueDate = new Date(taskToCheck.dueDate!);
+                    let nextDueDate: Date | null = null;
+                    const interval = taskToCheck.recurrenceInterval || 1;
 
                 switch (taskToCheck.recurrenceType) {
                     case "daily":
@@ -255,6 +260,7 @@ function HomeContent() {
             });
         }
     }
+}
 
     // Persist to database
     try {
@@ -536,6 +542,19 @@ function HomeContent() {
         onSubmit={handleSaveTask}
         onDelete={handleDeleteTask}
       />
+      
+      {completionTask && (
+        <CompletionWorkLogModal
+            isOpen={!!completionTask}
+            onClose={() => setCompletionTask(null)}
+            onSaved={() => {
+                // Optional: refresh tasks or logs if needed, but logs are separate.
+                // fetchTasks(); // Assuming we don't need to refresh board immediately for logs
+            }}
+            taskId={completionTask.id}
+            taskTitle={completionTask.title}
+        />
+      )}
     </div>
   );
 }
