@@ -6,11 +6,13 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from "recharts";
 import { 
-    ArrowLeft, Clock, CheckCircle2, MapPin, ChevronRight
+    ArrowLeft, Clock, CheckCircle2, MapPin, ChevronRight, Download
 } from "lucide-react";
 import Link from "next/link";
 import { Field } from "@/types/field";
 import { motion, AnimatePresence } from "framer-motion";
+import { WorkHeatmap } from "@/components/reports/WorkHeatmap";
+import { generateReportPDF } from "@/lib/utils/pdfGenerator";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
 
@@ -29,6 +31,7 @@ export default function ReportsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [hourlyWage, setHourlyWage] = useState(1000);
   
   const supabase = createClient();
 
@@ -36,9 +39,18 @@ export default function ReportsPage() {
     const fetchData = async () => {
       setLoading(true);
       
+      // Fetch fields
       const { data: fieldsData } = await supabase.from("fields").select("*");
       if (fieldsData) setFields(fieldsData);
 
+      // Fetch user profile for hourly wage
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+          const { data: profile } = await supabase.from("profiles").select("hourly_wage").eq("id", user.id).single();
+          if (profile && profile.hourly_wage) setHourlyWage(profile.hourly_wage);
+      }
+
+      // Fetch work logs
       const { data: logsData } = await supabase
         .from("work_logs")
         .select(`*, task:tasks (id, title, field_id)`)
@@ -61,6 +73,7 @@ export default function ReportsPage() {
           setWorkLogs(logsWithField);
       }
 
+      // Fetch completed tasks
       const { data: tasksData } = await supabase
         .from("tasks")
         .select("*, assignee:assignee_id(display_name, email, avatar_url)")
@@ -80,21 +93,37 @@ export default function ReportsPage() {
   // Calculate stats per field (include fields with tasks OR work logs)
   const fieldStats = useMemo(() => {
     return fields.map(field => {
-        const hours = workLogs
-          .filter(log => log.fieldId === field.id)
-          .reduce((sum, log) => sum + log.duration, 0);
+        const fieldLogs = workLogs.filter(log => log.fieldId === field.id);
+        const hours = fieldLogs.reduce((sum, log) => sum + log.duration, 0);
         const completedCount = tasks.filter(t => t.field_id === field.id).length;
+        
+        // Calculate Harvest
+        const totalHarvest = fieldLogs.reduce((sum, log) => sum + (log.harvest_quantity || 0), 0);
+        // Determine unit (simple: take the first non-null unit, or default to kg)
+        const unit = fieldLogs.find(log => log.harvest_unit)?.harvest_unit || 'kg';
+
+        // Calculate Cost
+        const estimatedCost = Math.round(hours * hourlyWage);
+
         return {
             id: field.id, 
             name: field.name,
             hours: Math.round(hours * 10) / 10,
             completedCount,
+            totalHarvest: Math.round(totalHarvest * 10) / 10,
+            harvestUnit: unit,
+            estimatedCost,
             color: field.color
         };
     }).filter(d => d.hours > 0 || d.completedCount > 0).sort((a, b) => (b.hours + b.completedCount) - (a.hours + a.completedCount));
-  }, [fields, workLogs, tasks]);
+  }, [fields, workLogs, tasks, hourlyWage]);
 
   const selectedField = fields.find(f => f.id === selectedFieldId);
+  const selectedStats = useMemo(() => {
+      if (!selectedFieldId) return null;
+      return fieldStats.find(s => s.id === selectedFieldId);
+  }, [fieldStats, selectedFieldId]);
+
   const selectedWorkLogs = useMemo(() => {
     if (!selectedFieldId) return [];
     return workLogs.filter(log => log.fieldId === selectedFieldId);
@@ -143,6 +172,18 @@ export default function ReportsPage() {
                 {selectedFieldId ? "圃場の詳細" : "全体の実績"}
               </p>
             </div>
+            
+            <div className="flex-1" />
+
+            {!selectedFieldId && (
+                <button 
+                    onClick={() => generateReportPDF(workLogs, totalHours, tasks.length)}
+                    className="p-2 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                    title="日誌PDF出力"
+                >
+                    <Download className="w-5 h-5" />
+                </button>
+            )}
           </div>
         </div>
       </div>
@@ -166,7 +207,7 @@ export default function ReportsPage() {
                   <span className="text-sm text-slate-500 font-medium">合計時間</span>
                 </div>
                 <p className="text-3xl font-bold text-slate-800">
-                  {Math.round(selectedWorkLogs.reduce((sum, log) => sum + log.duration, 0) * 10) / 10}
+                  {selectedStats?.hours || 0}
                   <span className="text-base font-normal text-slate-400 ml-1">時間</span>
                 </p>
               </div>
@@ -176,10 +217,38 @@ export default function ReportsPage() {
                   <span className="text-sm text-slate-500 font-medium">完了タスク</span>
                 </div>
                 <p className="text-3xl font-bold text-slate-800">
-                  {selectedTasks.length}
+                  {selectedStats?.completedCount || 0}
                   <span className="text-base font-normal text-slate-400 ml-1">件</span>
                 </p>
               </div>
+              {/* Additional Stats: Harvest & Cost */}
+              {selectedStats && selectedStats.totalHarvest > 0 && (
+                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center">
+                        <span className="text-[10px] text-amber-600 font-bold">¥</span>
+                    </div>
+                    <span className="text-sm text-slate-500 font-medium">収穫量</span>
+                  </div>
+                  <p className="text-2xl font-bold text-slate-800">
+                    {selectedStats.totalHarvest}
+                    <span className="text-sm font-normal text-slate-400 ml-1">{selectedStats.harvestUnit}</span>
+                  </p>
+                </div>
+              )}
+              {selectedStats && selectedStats.estimatedCost > 0 && (
+                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded-full bg-rose-100 flex items-center justify-center">
+                        <span className="text-[10px] text-rose-600 font-bold">¥</span>
+                    </div>
+                    <span className="text-sm text-slate-500 font-medium">概算人件費</span>
+                  </div>
+                  <p className="text-2xl font-bold text-slate-800">
+                    ¥{selectedStats.estimatedCost.toLocaleString()}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Work Logs */}
@@ -242,6 +311,9 @@ export default function ReportsPage() {
             exit={{ opacity: 0 }}
             className="space-y-6"
           >
+            {/* Heatmap */}
+            <WorkHeatmap logs={workLogs} />
+
             {/* Summary Stats */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
@@ -332,7 +404,8 @@ export default function ReportsPage() {
                         <p className="font-bold text-slate-800">{field.name}</p>
                         <div className="flex items-center gap-3 text-sm text-slate-500">
                           {field.hours > 0 && <span>{field.hours} 時間</span>}
-                          {field.completedCount > 0 && <span>{field.completedCount} 件完了</span>}
+                          {field.totalHarvest > 0 && <span>{field.totalHarvest}{field.harvestUnit}</span>}
+                          {field.estimatedCost > 0 && <span className="text-slate-400 text-xs">¥{field.estimatedCost.toLocaleString()}</span>}
                         </div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-slate-300" />

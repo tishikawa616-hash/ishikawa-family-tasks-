@@ -16,6 +16,8 @@ interface CompletionWorkLogModalProps {
 export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskTitle }: CompletionWorkLogModalProps) {
   const [duration, setDuration] = useState("");
   const [unit, setUnit] = useState<"minutes" | "hours">("minutes");
+  const [harvestQuantity, setHarvestQuantity] = useState("");
+  const [harvestUnit, setHarvestUnit] = useState("kg");
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
@@ -49,6 +51,8 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
         started_at: startTime.toISOString(),
         ended_at: endTime.toISOString(),
         notes: "タスク完了時入力",
+        harvest_quantity: harvestQuantity ? parseFloat(harvestQuantity) : null,
+        harvest_unit: harvestQuantity ? harvestUnit : null,
       });
 
       if (error) throw error;
@@ -80,7 +84,7 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
           </div>
 
           <div className="px-5 py-4 space-y-6">
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-3 border-b border-gray-100 pb-4 mb-4">
                 <div className="flex-1">
                     <label className="block text-xs font-semibold text-gray-500 mb-1">作業時間</label>
                     <input
@@ -105,6 +109,38 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
                     >
                         時間
                     </button>
+                </div>
+            </div>
+
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                   <label className="text-sm font-semibold text-gray-700">収穫量 <span className="text-xs font-normal text-gray-500">(任意)</span></label>
+                   <button 
+                     onClick={() => { setHarvestQuantity(""); }} 
+                     className="text-xs text-gray-400 hover:text-gray-600"
+                   >
+                     クリア
+                   </button>
+                </div>
+                <div className="flex items-end gap-3">
+                    <div className="flex-1">
+                        <input
+                            type="number"
+                            value={harvestQuantity}
+                            onChange={(e) => setHarvestQuantity(e.target.value)}
+                            placeholder="0"
+                            className="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-emerald-500 px-1 py-2 bg-transparent outline-none"
+                        />
+                    </div>
+                    <div className="w-24">
+                        <input
+                             type="text"
+                             value={harvestUnit}
+                             onChange={(e) => setHarvestUnit(e.target.value)}
+                             className="w-full text-right text-sm font-medium text-gray-600 border-b-2 border-gray-200 focus:border-gray-400 px-1 py-3 bg-transparent outline-none"
+                             placeholder="単位 (kg)"
+                        />
+                    </div>
                 </div>
             </div>
 
