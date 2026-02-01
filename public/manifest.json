@@ -1,6 +1,6 @@
 {
-  "name": "石川家タスクボード",
-  "short_name": "タスク",
+  "name": "タスク管理",
+  "short_name": "タスク管理",
   "description": "家族で共有するタスク管理アプリ",
   "start_url": "/",
   "display": "standalone",

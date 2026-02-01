@@ -409,7 +409,7 @@ function HomeContent() {
                 <LayoutGrid className="w-6 h-6" />
             </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-(--color-text-primary)">石川家タスク</h1>
+            <h1 className="text-xl font-bold tracking-tight text-(--color-text-primary)">タスク管理</h1>
             <p className="text-xs text-(--color-text-muted) font-medium tracking-wide">Family Dashboard</p>
           </div>
         </div>

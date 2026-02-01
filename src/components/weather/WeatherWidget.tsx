@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchWeather, getWeatherInfo, isGoodFarmingDay, WeatherData } from "@/lib/weather";
-import { Cloud, Droplets, Wind, Leaf } from "lucide-react";
+import { Droplets, Wind, Leaf } from "lucide-react";
 
 export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -30,32 +30,34 @@ export function WeatherWidget() {
   }
 
   const today = weather.daily[0];
-  const todayInfo = getWeatherInfo(today.weatherCode);
   const currentInfo = getWeatherInfo(weather.current.weatherCode);
   const isGoodDay = isGoodFarmingDay(today);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
       {/* Current Weather */}
-      <div className="p-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm opacity-80">西原村</p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-bold">{weather.current.temperature}°</span>
-              <span className="text-lg">{currentInfo.label}</span>
-            </div>
-          </div>
-          <span className="text-5xl">{currentInfo.icon}</span>
+      <div className="p-5 bg-gradient-to-r from-sky-500 to-blue-600 text-white flex flex-col items-center text-center">
+        <div className="bg-white/20 p-2 rounded-full mb-3">
+            <span className="text-4xl">{currentInfo.icon}</span>
         </div>
         
-        <div className="flex gap-4 mt-3 text-sm opacity-90">
-          <span className="flex items-center gap-1">
+        <div>
+          <p className="text-sm opacity-90 font-medium tracking-wide">西原村</p>
+          <div className="flex items-center justify-center gap-2 mt-1 mb-2">
+            <span className="text-5xl font-bold tracking-tighter ml-2">{weather.current.temperature}°</span>
+          </div>
+          <span className="text-lg font-medium bg-white/10 px-3 py-0.5 rounded-full">{currentInfo.label}</span>
+        </div>
+        
+        <div className="flex gap-4 mt-6 text-sm font-medium opacity-90 bg-black/10 px-4 py-2 rounded-xl">
+          <span className="flex items-center gap-1.5">
             <Wind className="w-4 h-4" />
             {weather.current.windSpeed}km/h
           </span>
-          <span className="flex items-center gap-1">
-            ↑{today.tempMax}° ↓{today.tempMin}°
+          <div className="w-px h-4 bg-white/30"></div>
+          <span className="flex items-center gap-1.5">
+            <span className="text-red-100">↑{today.tempMax}°</span>
+            <span className="text-blue-100">↓{today.tempMin}°</span>
           </span>
         </div>
 

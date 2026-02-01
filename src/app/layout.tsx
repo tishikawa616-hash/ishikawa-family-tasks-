@@ -21,13 +21,13 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "石川家タスクボード",
+  title: "タスク管理",
   description: "家族で共有するタスク管理アプリ - 西原村から世界へ",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "石川家タスク",
+    title: "タスク管理",
   },
 };
 
