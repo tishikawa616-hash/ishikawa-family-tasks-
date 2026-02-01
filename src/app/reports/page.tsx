@@ -74,16 +74,20 @@ export default function ReportsPage() {
       }
 
       // Fetch completed tasks
-      // Fetch completed tasks (broaden check just in case)
+      // Fetch ALL tasks and filter in memory (Mirroring Board logic to ensure consistency)
       const { data: tasksData } = await supabase
         .from("tasks")
         .select("*, assignee:assignee_id(display_name, email, avatar_url)")
-        .in("status", ["col-done", "done", "DONE", "completed"]) 
         .order('updated_at', { ascending: false });
 
-      console.log("Fetched completed tasks:", tasksData);
-
-      if (tasksData) setTasks(tasksData);
+      if (tasksData) {
+          // Broad filter for completion status
+          const completedTasks = tasksData.filter(t => 
+             ["col-done", "done", "DONE", "completed"].includes(t.status)
+          );
+          console.log("Filtered completed tasks:", completedTasks);
+          setTasks(completedTasks);
+      }
 
       setLoading(false);
     };
