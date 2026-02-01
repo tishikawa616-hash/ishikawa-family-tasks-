@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter } from "lucide-react";
+import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter, BarChart3 } from "lucide-react";
 import { Board, CalendarView, TaskModal } from "@/components/board";
 import type { Board as BoardType, Task, Column } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
@@ -470,6 +470,13 @@ function HomeContent() {
             />
           </div>
           
+          <button
+            onClick={() => router.push('/reports')}
+            className="hidden md:flex p-2 rounded-lg hover:bg-blue-50 text-gray-500 hover:text-blue-500 transition-colors"
+            title="レポート"
+          >
+            <BarChart3 className="w-5 h-5" />
+          </button>
           <button
             onClick={handleLogout}
             className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-500 transition-colors"

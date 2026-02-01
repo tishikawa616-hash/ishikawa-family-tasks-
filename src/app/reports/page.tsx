@@ -81,12 +81,17 @@ export default function ReportsPage() {
         .order('updated_at', { ascending: false });
 
       if (tasksData) {
+          console.log("ALL fetched tasks (before filter):", tasksData);
+          console.log("Task statuses found:", [...new Set(tasksData.map(t => t.status))]);
+          
           // Broad filter for completion status
           const completedTasks = tasksData.filter(t => 
              ["col-done", "done", "DONE", "completed"].includes(t.status)
           );
           console.log("Filtered completed tasks:", completedTasks);
           setTasks(completedTasks);
+      } else {
+          console.log("tasksData is null or undefined");
       }
 
       setLoading(false);
