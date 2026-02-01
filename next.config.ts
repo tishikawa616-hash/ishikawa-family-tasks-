@@ -17,7 +17,6 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   /* config options here */
-  swcMinify: true,
 };
 
 export default withPWA(nextConfig);
