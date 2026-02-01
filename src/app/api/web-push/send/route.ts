@@ -2,27 +2,29 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import webPush from "web-push";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-webPush.setVapidDetails(
-  "mailto:example@yourdomain.org",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+// Top-level declarations removed to avoid build-time errors if env vars are missing
+// import webPush from "web-push"; // webPush is imported at top but configured inside
 
 export async function POST(request: Request) {
   const body = await request.json();
 
-  // Validate shared secret to secure this endpoint from public access
-  // We can use a simple query param or header. For simplicity, let's check a header.
-  // You should set this header in your Supabase Webhook configuration.
+  // Validate shared secret
   const authHeader = request.headers.get("x-webhook-secret");
   if (authHeader !== process.env.WEBHOOK_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
+  // Initialize Supabase and web-push dynamically
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  webPush.setVapidDetails(
+    "mailto:example@yourdomain.org",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
 
   const { type, table, record, old_record, schema } = body;
 
