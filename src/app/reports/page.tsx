@@ -410,12 +410,8 @@ export default function ReportsPage() {
                         axisLine={false}
                       />
                       <Tooltip 
-                                <p>{data.hours} 時間</p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
+                        cursor={{ fill: '#f8fafc' }}
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                       />
                       <Bar 
                         dataKey="hours" 
@@ -469,7 +465,7 @@ export default function ReportsPage() {
             </div>
           </motion.div>
         )}
-        </AnimatePresence>
+
       </div>
     </div>
   );
