@@ -124,8 +124,8 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-24 md:pb-10 font-sans">
       {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-30 bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="fixed top-0 inset-x-0 z-30 bg-white/90 backdrop-blur-xl border-b border-white/20 shadow-sm pt-[env(safe-area-inset-top)]">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 {selectedFieldId ? (
                     <button onClick={() => setSelectedFieldId(null)} className="p-2 -ml-2 hover:bg-black/5 rounded-full transition-colors">
@@ -138,10 +138,10 @@ export default function ReportsPage() {
                 )}
                 <div>
                     <h1 className="text-lg font-bold text-slate-800 tracking-tight">
-                        {selectedField ? selectedField.name : "Farm Report"}
+                        {selectedField ? selectedField.name : "実績レポート"}
                     </h1>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">
-                        {selectedFieldId ? "FIELD INSIGHTS" : "DASHBOARD"}
+                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
+                        {selectedFieldId ? "詳細分析" : "ダッシュボード"}
                     </p>
                 </div>
             </div>
@@ -151,7 +151,7 @@ export default function ReportsPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 pt-20 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 pt-[calc(80px+env(safe-area-inset-top))] pb-6 space-y-8">
         
         <AnimatePresence mode="wait">
         {selectedFieldId && selectedField ? (
@@ -185,21 +185,21 @@ export default function ReportsPage() {
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                <p className="text-xs font-medium text-slate-400 mb-1">TOTAL HOURS</p>
+                                <p className="text-xs font-semibold text-slate-500 mb-1">合計時間</p>
                                 <p className="text-2xl font-bold text-slate-800">
                                     {Math.round(selectedWorkLogs.reduce((sum, log) => sum + log.duration, 0) * 10) / 10}
-                                    <span className="text-sm font-medium text-slate-400 ml-1">h</span>
+                                    <span className="text-sm font-medium text-slate-400 ml-1">時間</span>
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                <p className="text-xs font-medium text-slate-400 mb-1">COMPLETED</p>
+                                <p className="text-xs font-semibold text-slate-500 mb-1">完了タスク</p>
                                 <p className="text-2xl font-bold text-slate-800">
                                     {selectedTasks.length}
-                                    <span className="text-sm font-medium text-slate-400 ml-1">tasks</span>
+                                    <span className="text-sm font-medium text-slate-400 ml-1">件</span>
                                 </p>
                             </div>
                             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                                <p className="text-xs font-medium text-slate-400 mb-1">LAST ACTIVITY</p>
+                                <p className="text-xs font-semibold text-slate-500 mb-1">最終作業</p>
                                 <p className="text-sm font-bold text-slate-800 line-clamp-2">
                                     {selectedWorkLogs[0] ? new Date(selectedWorkLogs[0].started_at).toLocaleDateString() : "-"}
                                 </p>
@@ -213,7 +213,7 @@ export default function ReportsPage() {
                     <div className="md:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
                         <div className="flex items-center gap-2 mb-6">
                             <Clock className="w-5 h-5 text-slate-400" />
-                            <h3 className="font-bold text-slate-700">Work Logs</h3>
+                            <h3 className="font-bold text-slate-700">作業履歴</h3>
                         </div>
                         
                         <div className="space-y-8 relative pl-2">
@@ -228,7 +228,7 @@ export default function ReportsPage() {
                                         
                                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-2">
                                             <p className="text-sm font-bold text-slate-800">{log.task?.title || "不明なタスク"}</p>
-                                            <span className="text-xs font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded-md whitespace-nowrap">
+                                            <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded-md whitespace-nowrap">
                                                 {new Date(log.started_at).toLocaleDateString()} {new Date(log.started_at).getHours()}:{String(new Date(log.started_at).getMinutes()).padStart(2, '0')} 
                                                 <span className="mx-1">-</span>
                                                 {log.ended_at ? `${new Date(log.ended_at).getHours()}:${String(new Date(log.ended_at).getMinutes()).padStart(2, '0')}` : "??:??"}
@@ -257,7 +257,7 @@ export default function ReportsPage() {
                     <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 h-fit sticky top-24">
                          <div className="flex items-center gap-2 mb-6">
                             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                            <h3 className="font-bold text-slate-700">Completed</h3>
+                            <h3 className="font-bold text-slate-700">完了したタスク</h3>
                         </div>
                         
                         <div className="space-y-3">
@@ -296,31 +296,32 @@ export default function ReportsPage() {
             >
                 {/* Stats Row */}
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Clock className="w-24 h-24 text-blue-500" />
                         </div>
-                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Total Hours</p>
+                        <p className="text-sm font-semibold text-slate-500 mb-2">総作業時間</p>
                         <p className="text-4xl font-extrabold text-slate-800 tracking-tight">
                             {totalHours}
-                            <span className="text-lg font-medium text-slate-400 ml-2">h</span>
+                            <span className="text-lg font-medium text-slate-400 ml-2">時間</span>
                         </p>
                         <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded-full">
                             <TrendingUp className="w-3 h-3" />
-                            <span>This Month</span>
+                            <span>すべての期間</span>
                         </div>
                     </div>
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
+                    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-all">
                         <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <CheckCircle2 className="w-24 h-24 text-emerald-500" />
                         </div>
-                        <p className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Tasks Done</p>
+                        <p className="text-sm font-semibold text-slate-500 mb-2">完了タスク</p>
                         <p className="text-4xl font-extrabold text-slate-800 tracking-tight">
                             {tasks.length}
+                            <span className="text-lg font-medium text-slate-400 ml-2">件</span>
                         </p>
                         <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-blue-600 bg-blue-50 w-fit px-2 py-1 rounded-full">
                             <Calendar className="w-3 h-3" />
-                            <span>Total</span>
+                            <span>累計</span>
                         </div>
                     </div>
                 </div>
@@ -329,8 +330,8 @@ export default function ReportsPage() {
                 <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h2 className="text-lg font-bold text-slate-800">Field Performance</h2>
-                            <p className="text-sm text-slate-400">圃場ごとの作業時間比較</p>
+                            <h2 className="text-lg font-bold text-slate-800">圃場ごとの作業時間</h2>
+                            <p className="text-sm text-slate-400">どの圃場でどれくらい作業したか</p>
                         </div>
                     </div>
                     <div className="h-72 w-full">
@@ -357,7 +358,7 @@ export default function ReportsPage() {
                                             return (
                                                 <div className="bg-slate-800 text-white text-xs rounded-lg py-2 px-3 shadow-xl">
                                                     <p className="font-bold mb-1">{data.name}</p>
-                                                    <p>{data.hours} hours</p>
+                                                    <p>{data.hours} 時間</p>
                                                 </div>
                                             );
                                         }
@@ -386,7 +387,7 @@ export default function ReportsPage() {
 
                 {/* Field Grid */}
                 <div>
-                     <h2 className="text-lg font-bold text-slate-800 mb-4 px-2">Fields Overview</h2>
+                     <h2 className="text-lg font-bold text-slate-800 mb-4 px-2">圃場一覧</h2>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {hoursPerField.map((field) => (
                             <button 
@@ -405,7 +406,7 @@ export default function ReportsPage() {
                                 </div>
                                 <div className="flex items-end justify-between">
                                     <div>
-                                        <p className="text-2xl font-bold text-slate-800">{field.hours}<span className="text-sm font-medium text-slate-400 ml-1">h</span></p>
+                                        <p className="text-2xl font-bold text-slate-800">{field.hours}<span className="text-sm font-medium text-slate-400 ml-1">時間</span></p>
                                     </div>
                                     <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
                                         <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min((field.hours / (hoursPerField[0]?.hours || 1)) * 100, 100)}%`, backgroundColor: field.color }} />
