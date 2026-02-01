@@ -77,7 +77,7 @@ export default function ReportsPage() {
       // Fetch ALL tasks and filter in memory (Mirroring Board logic to ensure consistency)
       const { data: tasksData } = await supabase
         .from("tasks")
-        .select("*, assignee:assignee_id(display_name, email, avatar_url)")
+        .select("*")
         .order('updated_at', { ascending: false });
 
       if (tasksData) {
