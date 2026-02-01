@@ -138,9 +138,9 @@ body {
   background: #94a3b8;
 }
 
-/* Safe Area Support */
+/* Safe Area Support - Enhanced for PWA */
 .safe-p-top {
-  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-top: max(2.5rem, env(safe-area-inset-top, 2.5rem));
 }
 .safe-p-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));

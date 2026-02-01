@@ -114,8 +114,8 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-slate-50 pb-28">
       {/* Simple Scrollable Header - Not Fixed */}
-      <div className="bg-white border-b border-slate-100 px-4 py-6 pt-safe">
-        <div className="max-w-lg mx-auto">
+      <div className="bg-white border-b border-slate-100 px-4 py-6 safe-p-top">
+        <div className="max-w-lg mx-auto pt-4">
           <div className="flex items-center gap-3">
             {selectedFieldId ? (
               <button 
