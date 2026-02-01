@@ -20,4 +20,19 @@ export class WorkLogDatabase extends Dexie {
   }
 }
 
-export const db = new WorkLogDatabase();
+// Singleton instance, created lazily to avoid SSR/Build issues
+let dbInstance: WorkLogDatabase | undefined;
+
+export const getDb = () => {
+    if (typeof window === "undefined") {
+        return null; // Return null on server
+    }
+    if (!dbInstance) {
+        dbInstance = new WorkLogDatabase();
+    }
+    return dbInstance;
+};
+
+// For backward compatibility if needed, but better to use getDb()
+// Or we can mock it on server to avoid import errors
+export const db = typeof window !== "undefined" ? new WorkLogDatabase() : {} as WorkLogDatabase;
