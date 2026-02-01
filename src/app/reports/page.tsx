@@ -74,11 +74,14 @@ export default function ReportsPage() {
       }
 
       // Fetch completed tasks
+      // Fetch completed tasks (broaden check just in case)
       const { data: tasksData } = await supabase
         .from("tasks")
         .select("*, assignee:assignee_id(display_name, email, avatar_url)")
-        .eq("status", "col-done")
+        .in("status", ["col-done", "done", "DONE", "completed"]) 
         .order('updated_at', { ascending: false });
+
+      console.log("Fetched completed tasks:", tasksData);
 
       if (tasksData) setTasks(tasksData);
 
@@ -92,17 +95,14 @@ export default function ReportsPage() {
   
   // Calculate stats per field (include fields with tasks OR work logs)
   const fieldStats = useMemo(() => {
-    return fields.map(field => {
+    // 1. Map existing fields
+    const mapped = fields.map(field => {
         const fieldLogs = workLogs.filter(log => log.fieldId === field.id);
         const hours = fieldLogs.reduce((sum, log) => sum + log.duration, 0);
         const completedCount = tasks.filter(t => t.field_id === field.id).length;
         
-        // Calculate Harvest
         const totalHarvest = fieldLogs.reduce((sum, log) => sum + (log.harvest_quantity || 0), 0);
-        // Determine unit (simple: take the first non-null unit, or default to kg)
         const unit = fieldLogs.find(log => log.harvest_unit)?.harvest_unit || 'kg';
-
-        // Calculate Cost
         const estimatedCost = Math.round(hours * hourlyWage);
 
         return {
@@ -115,10 +115,37 @@ export default function ReportsPage() {
             estimatedCost,
             color: field.color
         };
-    }).filter(d => d.hours > 0 || d.completedCount > 0).sort((a, b) => (b.hours + b.completedCount) - (a.hours + a.completedCount));
+    });
+
+    // 2. Add "Unassigned" if necessary
+    const unassignedLogs = workLogs.filter(log => !log.fieldId || !fields.find(f => f.id === log.fieldId));
+    const unassignedTasks = tasks.filter(t => !t.field_id || !fields.find(f => f.id === t.field_id));
+
+    if (unassignedLogs.length > 0 || unassignedTasks.length > 0) {
+        const hours = unassignedLogs.reduce((sum, log) => sum + log.duration, 0);
+        const totalHarvest = unassignedLogs.reduce((sum, log) => sum + (log.harvest_quantity || 0), 0);
+        const unit = unassignedLogs.find(log => log.harvest_unit)?.harvest_unit || 'kg';
+        const estimatedCost = Math.round(hours * hourlyWage);
+
+        mapped.push({
+            id: "unassigned",
+            name: "未割当",
+            hours: Math.round(hours * 10) / 10,
+            completedCount: unassignedTasks.length,
+            totalHarvest: Math.round(totalHarvest * 10) / 10,
+            harvestUnit: unit,
+            estimatedCost,
+            color: "#94a3b8" // Slate-400
+        });
+    }
+
+    return mapped.filter(d => d.hours > 0 || d.completedCount > 0).sort((a, b) => (b.hours + b.completedCount) - (a.hours + a.completedCount));
   }, [fields, workLogs, tasks, hourlyWage]);
 
-  const selectedField = fields.find(f => f.id === selectedFieldId);
+  const selectedField = selectedFieldId === "unassigned" 
+    ? { name: "未割当", color: "#94a3b8" } 
+    : fields.find(f => f.id === selectedFieldId);
+
   const selectedStats = useMemo(() => {
       if (!selectedFieldId) return null;
       return fieldStats.find(s => s.id === selectedFieldId);
@@ -126,13 +153,19 @@ export default function ReportsPage() {
 
   const selectedWorkLogs = useMemo(() => {
     if (!selectedFieldId) return [];
+    if (selectedFieldId === "unassigned") {
+        return workLogs.filter(log => !log.fieldId || !fields.find(f => f.id === log.fieldId));
+    }
     return workLogs.filter(log => log.fieldId === selectedFieldId);
-  }, [workLogs, selectedFieldId]);
+  }, [workLogs, selectedFieldId, fields]);
   
   const selectedTasks = useMemo(() => {
       if (!selectedFieldId) return [];
+      if (selectedFieldId === "unassigned") {
+          return tasks.filter(t => !t.field_id || !fields.find(f => f.id === t.field_id));
+      }
       return tasks.filter(task => task.field_id === selectedFieldId);
-  }, [tasks, selectedFieldId]);
+  }, [tasks, selectedFieldId, fields]);
 
   if (loading) {
       return (
