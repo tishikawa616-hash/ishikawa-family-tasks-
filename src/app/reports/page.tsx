@@ -77,19 +77,22 @@ export default function ReportsPage() {
 
   const totalHours = useMemo(() => Math.round(workLogs.reduce((sum, log) => sum + log.duration, 0) * 10) / 10, [workLogs]);
   
-  const hoursPerField = useMemo(() => {
+  // Calculate stats per field (include fields with tasks OR work logs)
+  const fieldStats = useMemo(() => {
     return fields.map(field => {
         const hours = workLogs
           .filter(log => log.fieldId === field.id)
           .reduce((sum, log) => sum + log.duration, 0);
+        const completedCount = tasks.filter(t => t.field_id === field.id).length;
         return {
             id: field.id, 
             name: field.name,
             hours: Math.round(hours * 10) / 10,
+            completedCount,
             color: field.color
         };
-    }).filter(d => d.hours > 0).sort((a, b) => b.hours - a.hours);
-  }, [fields, workLogs]);
+    }).filter(d => d.hours > 0 || d.completedCount > 0).sort((a, b) => (b.hours + b.completedCount) - (a.hours + a.completedCount));
+  }, [fields, workLogs, tasks]);
 
   const selectedField = fields.find(f => f.id === selectedFieldId);
   const selectedWorkLogs = useMemo(() => {
@@ -258,12 +261,12 @@ export default function ReportsPage() {
             </div>
 
             {/* Chart */}
-            {hoursPerField.length > 0 && (
+            {fieldStats.length > 0 && (
               <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <h3 className="font-bold text-slate-700 mb-4">圃場別の作業時間</h3>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={hoursPerField} layout="vertical" margin={{ left: 0, right: 20 }}>
+                    <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                       <XAxis type="number" tick={{fontSize: 11, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                       <YAxis 
@@ -294,7 +297,7 @@ export default function ReportsPage() {
                         radius={[0, 6, 6, 0]}
                         barSize={20}
                       >
-                        {hoursPerField.map((entry, index) => (
+                        {fieldStats.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
                         ))}
                       </Bar>
@@ -308,12 +311,12 @@ export default function ReportsPage() {
             <div>
               <h3 className="font-bold text-slate-700 mb-3 px-1">圃場一覧</h3>
               <div className="space-y-3">
-                {hoursPerField.length === 0 ? (
+                {fieldStats.length === 0 ? (
                   <div className="bg-white rounded-2xl p-8 text-center border border-slate-100">
-                    <p className="text-slate-400">まだ作業記録がありません</p>
+                    <p className="text-slate-400">まだ記録がありません</p>
                   </div>
                 ) : (
-                  hoursPerField.map((field) => (
+                  fieldStats.map((field) => (
                     <button 
                       key={field.id}
                       onClick={() => setSelectedFieldId(field.id)}
@@ -327,7 +330,10 @@ export default function ReportsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-slate-800">{field.name}</p>
-                        <p className="text-sm text-slate-500">{field.hours} 時間</p>
+                        <div className="flex items-center gap-3 text-sm text-slate-500">
+                          {field.hours > 0 && <span>{field.hours} 時間</span>}
+                          {field.completedCount > 0 && <span>{field.completedCount} 件完了</span>}
+                        </div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-slate-300" />
                     </button>
