@@ -124,8 +124,8 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-24 md:pb-10 font-sans">
       {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-30 bg-white/90 backdrop-blur-xl border-b border-white/20 shadow-sm pt-[env(safe-area-inset-top)]">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="fixed top-0 inset-x-0 z-30 bg-white/90 backdrop-blur-xl border-b border-white/20 shadow-sm pt-[calc(env(safe-area-inset-top)+24px)] pb-4">
+        <div className="max-w-5xl mx-auto px-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 {selectedFieldId ? (
                     <button onClick={() => setSelectedFieldId(null)} className="p-2 -ml-2 hover:bg-black/5 rounded-full transition-colors">
@@ -151,7 +151,7 @@ export default function ReportsPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 pt-[calc(80px+env(safe-area-inset-top))] pb-6 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 pt-[calc(120px+env(safe-area-inset-top))] pb-6 space-y-8">
         
         <AnimatePresence mode="wait">
         {selectedFieldId && selectedField ? (
