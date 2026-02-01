@@ -358,18 +358,18 @@ export default function ReportsPage() {
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20 flex flex-col items-center justify-center text-center">
                 <p className="text-blue-100 text-sm font-medium mb-1">総作業時間</p>
-                <p className="text-4xl font-bold">
+                <p className="text-3xl font-bold">
                   {totalHours}
-                  <span className="text-lg font-normal text-blue-100 ml-1">時間</span>
+                  <span className="text-base font-normal text-blue-100 ml-1">時間</span>
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20">
+              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center text-center">
                 <p className="text-emerald-100 text-sm font-medium mb-1">完了タスク</p>
-                <p className="text-4xl font-bold">
+                <p className="text-3xl font-bold">
                   {tasks.length}
-                  <span className="text-lg font-normal text-emerald-100 ml-1">件</span>
+                  <span className="text-base font-normal text-emerald-100 ml-1">件</span>
                 </p>
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function ReportsPage() {
             {fieldStats.length > 0 && (
               <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <h3 className="font-bold text-slate-700 mb-4">圃場別の作業時間</h3>
-                <div className="h-48">
+                <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
