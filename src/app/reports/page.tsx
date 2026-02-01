@@ -185,6 +185,9 @@ export default function ReportsPage() {
       );
   }
 
+  // Calculate dynamic height for chart based on item count
+  const chartHeight = Math.max(fieldStats.length * 60, 300);
+
   return (
     <div className="min-h-screen bg-slate-50 pb-28">
       {/* Simple Scrollable Header - Not Fixed */}
@@ -299,68 +302,57 @@ export default function ReportsPage() {
                 <h3 className="font-bold text-slate-700">作業履歴</h3>
               </div>
               <div className="divide-y divide-slate-100">
-    <div className="flex flex-col min-h-dvh w-full bg-[#F7F9FC] pb-32 md:pb-12 safe-p-bottom">
-      {/* Header */}
-      <header className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm safe-p-top">
-        <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600">
-                <PieChart className="w-6 h-6" />
+                {selectedWorkLogs.length === 0 ? (
+                  <div className="p-4 text-center text-slate-400">
+                    この圃場にはまだ作業記録がありません。
+                  </div>
+                ) : (
+                  selectedWorkLogs.map((log) => (
+                    <div key={log.id} className="p-4 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4 text-slate-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-slate-700">{log.task?.title || "タスクなし"}</p>
+                        <p className="text-sm text-slate-500">
+                          {new Date(log.started_at).toLocaleDateString()} - {log.duration.toFixed(1)} 時間
+                          {log.harvest_quantity > 0 && ` (${log.harvest_quantity}${log.harvest_unit})`}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-gray-900">分析レポート</h1>
-            <p className="text-xs text-gray-500 font-medium tracking-wide">Work Analysis</p>
-          </div>
-        </div>
-        
-        {/* Actions */}
-        <div className="flex items-center gap-3">
-          {/* PDF Export Button */}
-          <button
-            onClick={() => {
-                // Determine what to export based on view
-                if (selectedFieldId) {
-                   const element = document.getElementById("field-detail-report");
-                   if (element) generateFieldReportPDF(element, selectedField?.name || "Field Report");
-                } else {
-                   const element = document.getElementById("summary-report");
-                   if (element) generateReportPDF(element);
-                }
-            }}
-            className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
-            title="PDFをダウンロード"
-          >
-            <Download className="w-5 h-5" />
-          </button>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <div id="summary-report" className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto w-full">
-        {/* Date Selector */}
-        <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
-           <button 
-             onClick={() => moveDate(-1)}
-             className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
-           >
-             <ChevronLeft className="w-5 h-5" />
-           </button>
-           <span className="font-bold text-gray-700 tabular-nums">
-             {format(currentDate, "yyyy年 M月", { locale: ja })}
-           </span>
-           <button 
-             onClick={() => moveDate(1)}
-             className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
-           >
-             <ChevronRight className="w-5 h-5" />
-           </button>
-        </div>
-
-        {/* Loading State */}
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-pulse">
-            <div className="w-12 h-12 bg-gray-200 rounded-full mb-4" />
-            <div className="h-4 w-32 bg-gray-200 rounded" />
-          </div>
+            {/* Completed Tasks */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                <h3 className="font-bold text-slate-700">完了タスク</h3>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {selectedTasks.length === 0 ? (
+                  <div className="p-4 text-center text-slate-400">
+                    この圃場にはまだ完了タスクがありません。
+                  </div>
+                ) : (
+                  selectedTasks.map((task) => (
+                    <div key={task.id} className="p-4 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-slate-700">{task.title}</p>
+                        <p className="text-sm text-slate-500">
+                          {new Date(task.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
         ) : (
           /* === DASHBOARD VIEW === */
           <motion.div 
