@@ -3,20 +3,18 @@
 import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { 
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
 import { 
-    ArrowLeft, Clock, CheckCircle2, MapPin, ChevronRight, Download
+    PieChart, Clock, MapPin, ChevronRight, Download, ChevronLeft, ArrowLeft
 } from "lucide-react";
-import Link from "next/link";
 import { Field } from "@/types/field";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { WorkHeatmap } from "@/components/reports/WorkHeatmap";
-import { generateReportPDF } from "@/lib/utils/pdfGenerator";
+import { generateReportPDF, generateFieldReportPDF } from "@/lib/utils/pdfGenerator";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1'];
+import { useRouter } from "next/navigation";
 
 const calculateDuration = (start: string | null, end: string | null) => {
   if (!start || !end) return 0;
@@ -26,6 +24,7 @@ const calculateDuration = (start: string | null, end: string | null) => {
 };
 
 export default function ReportsPage() {
+  const router = useRouter(); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
   const [fields, setFields] = useState<Field[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,9 +33,9 @@ export default function ReportsPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [hourlyWage, setHourlyWage] = useState(1000);
+  const [currentDate, setCurrentDate] = useState(new Date());
   
   const supabase = createClient();
-  const [currentDate, setCurrentDate] = useState(new Date());
 
   const moveDate = (direction: number) => {
     const newDate = new Date(currentDate);
@@ -83,24 +82,16 @@ export default function ReportsPage() {
       }
 
       // Fetch completed tasks
-      // Fetch ALL tasks and filter in memory (Mirroring Board logic to ensure consistency)
       const { data: tasksData } = await supabase
         .from("tasks")
         .select("*")
         .order('created_at', { ascending: false });
 
       if (tasksData) {
-          console.log("ALL fetched tasks (before filter):", tasksData);
-          console.log("Task statuses found:", [...new Set(tasksData.map(t => t.status))]);
-          
-          // Broad filter for completion status
           const completedTasks = tasksData.filter(t => 
              ["col-done", "done", "DONE", "completed"].includes(t.status)
           );
-          console.log("Filtered completed tasks:", completedTasks);
           setTasks(completedTasks);
-      } else {
-          console.log("tasksData is null or undefined");
       }
 
       setLoading(false);
@@ -111,9 +102,8 @@ export default function ReportsPage() {
 
   const totalHours = useMemo(() => Math.round(workLogs.reduce((sum, log) => sum + log.duration, 0) * 10) / 10, [workLogs]);
   
-  // Calculate stats per field (include fields with tasks OR work logs)
+  // Calculate stats per field
   const fieldStats = useMemo(() => {
-    // 1. Map existing fields
     const mapped = fields.map(field => {
         const fieldLogs = workLogs.filter(log => log.fieldId === field.id);
         const hours = fieldLogs.reduce((sum, log) => sum + log.duration, 0);
@@ -135,7 +125,7 @@ export default function ReportsPage() {
         };
     });
 
-    // 2. Add "Unassigned" if necessary
+    // Add "Unassigned"
     const unassignedLogs = workLogs.filter(log => !log.fieldId || !fields.find(f => f.id === log.fieldId));
     const unassignedTasks = tasks.filter(t => !t.field_id || !fields.find(f => f.id === t.field_id));
 
@@ -153,7 +143,7 @@ export default function ReportsPage() {
             totalHarvest: Math.round(totalHarvest * 10) / 10,
             harvestUnit: unit,
             estimatedCost,
-            color: "#94a3b8" // Slate-400
+            color: "#94a3b8"
         });
     }
 
@@ -177,156 +167,10 @@ export default function ReportsPage() {
     return workLogs.filter(log => log.fieldId === selectedFieldId);
   }, [workLogs, selectedFieldId, fields]);
   
-  const selectedTasks = useMemo(() => {
-      if (!selectedFieldId) return [];
-      if (selectedFieldId === "unassigned") {
-          return tasks.filter(t => !t.field_id || !fields.find(f => f.id === t.field_id));
-      }
-      return tasks.filter(task => task.field_id === selectedFieldId);
-  }, [tasks, selectedFieldId, fields]);
-
-  if (loading) {
-      return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 p-8">
-            <div className="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-            <p className="text-slate-500 font-medium text-lg">読み込み中...</p>
-        </div>
-      );
-  }
-
   // Calculate dynamic height for chart based on item count
   const chartHeight = Math.max(fieldStats.length * 60, 300);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28">
-      {/* Simple Scrollable Header - Not Fixed */}
-      <div className="bg-white border-b border-slate-100 px-4 py-6 safe-p-top">
-        <div className="max-w-lg mx-auto pt-4">
-          <div className="flex items-center gap-3">
-            {selectedFieldId ? (
-              <button 
-                onClick={() => setSelectedFieldId(null)} 
-                className="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full active:bg-slate-200"
-              >
-                <ArrowLeft className="w-5 h-5 text-slate-600" />
-              </button>
-            ) : (
-              <Link 
-                href="/" 
-                className="w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full active:bg-slate-200"
-              >
-                <ArrowLeft className="w-5 h-5 text-slate-600" />
-              </Link>
-            )}
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">
-                {selectedField ? selectedField.name : "作業レポート"}
-              </h1>
-              <p className="text-sm text-slate-500">
-                {selectedFieldId ? "圃場の詳細" : "全体の実績"}
-              </p>
-            </div>
-            
-            <div className="flex-1" />
-
-            {!selectedFieldId && (
-                <button 
-                    onClick={() => generateReportPDF(workLogs, totalHours, tasks.length)}
-                    className="p-2 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
-                    title="日誌PDF出力"
-                >
-                    <Download className="w-5 h-5" />
-                </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-lg mx-auto px-4 py-6">
-        <AnimatePresence mode="wait">
-        {selectedFieldId && selectedField ? (
-          /* === FIELD DETAIL VIEW === */
-          <motion.div 
-            key="detail"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-slate-500 font-medium">合計時間</span>
-                </div>
-                <p className="text-3xl font-bold text-slate-800">
-                  {selectedStats?.hours || 0}
-                  <span className="text-base font-normal text-slate-400 ml-1">時間</span>
-                </p>
-              </div>
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-sm text-slate-500 font-medium">完了タスク</span>
-                </div>
-                <p className="text-3xl font-bold text-slate-800">
-                  {selectedStats?.completedCount || 0}
-                  <span className="text-base font-normal text-slate-400 ml-1">件</span>
-                </p>
-              </div>
-              {/* Additional Stats: Harvest & Cost */}
-              {selectedStats && selectedStats.totalHarvest > 0 && (
-                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center">
-                        <span className="text-[10px] text-amber-600 font-bold">¥</span>
-                    </div>
-                    <span className="text-sm text-slate-500 font-medium">収穫量</span>
-                  </div>
-                  <p className="text-2xl font-bold text-slate-800">
-                    {selectedStats.totalHarvest}
-                    <span className="text-sm font-normal text-slate-400 ml-1">{selectedStats.harvestUnit}</span>
-                  </p>
-                </div>
-              )}
-              {selectedStats && selectedStats.estimatedCost > 0 && (
-                <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-4 rounded-full bg-rose-100 flex items-center justify-center">
-                        <span className="text-[10px] text-rose-600 font-bold">¥</span>
-                    </div>
-                    <span className="text-sm text-slate-500 font-medium">概算人件費</span>
-                  </div>
-                  <p className="text-2xl font-bold text-slate-800">
-                    ¥{selectedStats.estimatedCost.toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Work Logs */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                <h3 className="font-bold text-slate-700">作業履歴</h3>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {selectedWorkLogs.length === 0 ? (
-                  <div className="p-4 text-center text-slate-400">
-                    この圃場にはまだ作業記録がありません。
-                  </div>
-                ) : (
-                  selectedWorkLogs.map((log) => (
-                    <div key={log.id} className="p-4 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <Clock className="w-4 h-4 text-slate-500" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-slate-700">{log.task?.title || "タスクなし"}</p>
-                        <p className="text-sm text-slate-500">
-                          {new Date(log.started_at).toLocaleDateString()} - {log.duration.toFixed(1)} 時間
-                          {log.harvest_quantity > 0 && ` (${log.harvest_quantity}${log.harvest_unit})`}
-                        </p>
     <div className="flex flex-col min-h-dvh w-full bg-[#F7F9FC] pb-32 md:pb-12 safe-p-bottom">
       {/* Header */}
       <header className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm safe-p-top">
@@ -342,6 +186,14 @@ export default function ReportsPage() {
         
         {/* Actions */}
         <div className="flex items-center gap-3">
+          {selectedFieldId && (
+              <button 
+                onClick={() => setSelectedFieldId(null)}
+                className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition-all shadow-sm"
+              >
+                  <ArrowLeft className="w-5 h-5" />
+              </button>
+          )}
           {/* PDF Export Button */}
           <button
             onClick={() => {
@@ -382,25 +234,18 @@ export default function ReportsPage() {
            </button>
         </div>
 
-        {/* Loading State */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-pulse">
             <div className="w-12 h-12 bg-gray-200 rounded-full mb-4" />
             <div className="h-4 w-32 bg-gray-200 rounded" />
           </div>
         ) : (
-          /* === DASHBOARD VIEW === */
-          /* Note: We removed AnimatePresence because it caused issues with simple conditional rendering without routing */
           <motion.div 
-            key="dashboard"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="space-y-6"
           >
-            {/* Heatmap */}
-            <WorkHeatmap logs={workLogs} />
-
-            {/* Summary Stats */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20 flex flex-col items-center justify-center text-center">
                 <p className="text-blue-100 text-sm font-medium mb-1">総作業時間</p>
@@ -418,70 +263,138 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Chart */}
-            {fieldStats.length > 0 && (
-              <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <h3 className="font-bold text-slate-700 mb-4">圃場別の作業時間</h3>
-                <div style={{ height: chartHeight }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis 
-                        dataKey="name" 
-                        type="category" 
-                        width={100} 
-                        stroke="#64748b" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false}
-                      />
-                      <Tooltip 
-                        cursor={{ fill: '#f8fafc' }}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      />
-                      <Bar dataKey="hours" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            )}
+            {selectedFieldId ? (
+               <div id="field-detail-report" className="space-y-6">
+                 {/* Field Header */}
+                 <div 
+                   className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 relative overflow-hidden"
+                 >
+                   <div 
+                     className="absolute top-0 right-0 w-32 h-32 bg-current opacity-5 rounded-full -mr-10 -mt-10 blur-2xl"
+                     style={{ color: selectedField?.color }}
+                   />
+                   <div className="relative">
+                     <span 
+                       className="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2"
+                       style={{ backgroundColor: selectedField?.color + '20', color: selectedField?.color }}
+                     >
+                        詳細レポート
+                     </span>
+                     <h2 className="text-2xl font-black text-slate-800 mb-1">{selectedField?.name}</h2>
+                     <div className="flex items-center gap-4 text-slate-500 text-sm">
+                        <span>計 {selectedStats?.hours} 時間</span>
+                        <span>•</span>
+                        <span>{selectedStats?.completedCount} タスク</span>
+                        {selectedStats?.totalHarvest ? (
+                            <>
+                                <span>•</span>
+                                <span>収穫: {selectedStats.totalHarvest}{selectedStats.harvestUnit}</span>
+                            </>
+                        ) : null}
+                     </div>
+                   </div>
+                 </div>
 
-            {/* Field List */}
-            <div>
-              <h3 className="font-bold text-slate-700 mb-3 px-1">圃場一覧</h3>
-              <div className="space-y-3">
-                {fieldStats.length === 0 ? (
-                  <div className="bg-white rounded-2xl p-8 text-center border border-slate-100">
-                    <p className="text-slate-400">まだ記録がありません</p>
-                  </div>
-                ) : (
-                  fieldStats.map((field) => (
-                    <button 
-                      key={field.id}
-                      onClick={() => setSelectedFieldId(field.id)}
-                      className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm active:bg-slate-50 transition-colors text-left flex items-center gap-4"
-                    >
-                      <div 
-                        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: field.color + '20', color: field.color }}
-                      >
-                        <MapPin className="w-6 h-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-slate-800">{field.name}</p>
-                        <div className="flex items-center gap-3 text-sm text-slate-500">
-                          {field.hours > 0 && <span>{field.hours} 時間</span>}
-                          {field.totalHarvest > 0 && <span>{field.totalHarvest}{field.harvestUnit}</span>}
-                          {field.estimatedCost > 0 && <span className="text-slate-400 text-xs">¥{field.estimatedCost.toLocaleString()}</span>}
+                 {/* Cost Estimate */}
+                 <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center justify-between">
+                   <div>
+                     <p className="text-xs text-slate-400 font-bold uppercase">推定人件費</p>
+                     <p className="text-xs text-slate-400 mt-0.5">※時給 ¥{hourlyWage.toLocaleString()} 計算</p>
+                   </div>
+                   <p className="text-2xl font-black text-slate-800">
+                     ¥{selectedStats?.estimatedCost?.toLocaleString() || 0}
+                   </p>
+                 </div>
+
+                 {/* Detailed Logs */}
+                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                        <h3 className="font-bold text-slate-700">作業履歴</h3>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                        {selectedWorkLogs.length === 0 ? (
+                            <div className="p-4 text-center text-slate-400">作業記録なし</div>
+                        ) : (
+                            selectedWorkLogs.map(log => (
+                                <div key={log.id} className="p-4 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                        <Clock className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-slate-700">{log.task?.title || "タスクなし"}</p>
+                                        <p className="text-sm text-slate-500">{format(new Date(log.started_at), "M/d HH:mm")} - {log.duration.toFixed(1)}h</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                 </div>
+               </div>
+            ) : (
+                <div className="space-y-6">
+                   {/* Heatmap */}
+                   <WorkHeatmap logs={workLogs} />
+
+                   {/* Field Breakdown Chart */}
+                   {fieldStats.length > 0 && (
+                     <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                        <h3 className="font-bold text-slate-700 mb-4">圃場別の作業時間</h3>
+                        <div style={{ height: chartHeight }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={fieldStats} layout="vertical" margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                            <XAxis type="number" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis 
+                                dataKey="name" 
+                                type="category" 
+                                width={100} 
+                                stroke="#64748b" 
+                                fontSize={12} 
+                                tickLine={false} 
+                                axisLine={false}
+                            />
+                            <Tooltip 
+                                cursor={{ fill: '#f8fafc' }}
+                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            />
+                            <Bar dataKey="hours" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                            </BarChart>
+                        </ResponsiveContainer>
                         </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-slate-300" />
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+                     </div>
+                   )}
+
+                   {/* Field List */}
+                   <div>
+                       <h3 className="font-bold text-slate-700 mb-3 px-1">圃場一覧</h3>
+                       <div className="space-y-3">
+                           {fieldStats.map((field) => (
+                               <button 
+                                key={field.id}
+                                onClick={() => setSelectedFieldId(field.id)}
+                                className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm active:bg-slate-50 transition-colors text-left flex items-center gap-4"
+                               >
+                                <div 
+                                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                                    style={{ backgroundColor: field.color + '20', color: field.color }}
+                                >
+                                    <MapPin className="w-6 h-6" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-slate-800">{field.name}</p>
+                                    <div className="flex items-center gap-3 text-sm text-slate-500">
+                                    {field.hours > 0 && <span>{field.hours} 時間</span>}
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-slate-300" />
+                               </button>
+                           ))}
+                       </div>
+                   </div>
+                </div>
+            )}
+            
+            <div className="h-10" />
           </motion.div>
         )}
       </div>
