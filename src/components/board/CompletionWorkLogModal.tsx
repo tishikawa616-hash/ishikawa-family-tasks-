@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Drawer } from "vaul";
-import { Save, SkipForward } from "lucide-react";
+import { Save, SkipForward, Clock, Leaf } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface CompletionWorkLogModalProps {
@@ -21,6 +20,8 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
+  if (!isOpen) return null;
+
   const handleSubmit = async () => {
     if (!duration) return;
     setLoading(true);
@@ -28,11 +29,6 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { 
-        // If offline/no-auth, we might skip or use Dexie. 
-        // For simplicity reusing offline logic would be best, but let's stick to basic insert for now 
-        // and assume online/auth or handle error gracefully.
-        // Actually, we should probably support offline here too since it's a core feature.
-        // But let's start simple.
         throw new Error("User not authenticated");
       }
 
@@ -61,8 +57,6 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
       onClose();
     } catch (error) {
       console.error("Error saving completion log:", error);
-      // Fallback: If network error, maybe try offline DB?
-      // For now, simple alert.
       alert("保存に失敗しました。");
     } finally {
       setLoading(false);
@@ -70,100 +64,124 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
   };
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-        <Drawer.Content className="fixed bottom-0 left-0 right-0 flex flex-col rounded-t-3xl bg-white z-50">
-          <div className="w-full flex justify-center py-4 shrink-0">
-            <div className="w-12 h-1.5 rounded-full bg-gray-300" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div 
+        className="bg-white rounded-[32px] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-6 pt-8 pb-4 text-center shrink-0">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+            🎉
           </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">お疲れ様でした！</h2>
+          <p className="text-sm text-gray-500 break-words leading-relaxed px-4">
+            <span className="font-semibold text-gray-800">"{taskTitle}"</span><br/>
+            の作業を記録しますか？
+          </p>
+        </div>
 
-          <div className="px-5 pb-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-1">お疲れ様でした！</h2>
-            <p className="text-sm text-gray-500">&quot;{taskTitle}&quot; の作業時間を記録しますか？</p>
-          </div>
-
-          <div className="px-5 py-4 space-y-6">
-            <div className="flex items-end gap-3 border-b border-gray-100 pb-4 mb-4">
+        <div className="px-6 py-2 overflow-y-auto flex-1 space-y-6">
+          {/* Work Time Input */}
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <div className="flex items-center gap-2 mb-3 text-gray-500">
+                <Clock className="w-4 h-4" />
+                <label className="text-xs font-bold uppercase tracking-wider">作業時間</label>
+            </div>
+            
+            <div className="flex items-end gap-3">
                 <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">作業時間</label>
                     <input
                         type="number"
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
                         placeholder="0"
-                        className="w-full text-3xl font-bold border-b-2 border-gray-200 focus:border-blue-500 px-1 py-2 bg-transparent outline-none"
+                        className="w-full text-4xl font-bold bg-transparent outline-none placeholder:text-gray-300 text-gray-900"
                         autoFocus
                     />
                 </div>
-                <div className="flex bg-gray-100 rounded-lg p-1 shrink-0">
+                <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200 shrink-0">
                     <button
                         onClick={() => setUnit("minutes")}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${unit === "minutes" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                            unit === "minutes" 
+                                ? "bg-blue-500 text-white shadow-sm" 
+                                : "text-gray-500 hover:bg-gray-50"
+                        }`}
                     >
                         分
                     </button>
                     <button
                         onClick={() => setUnit("hours")}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${unit === "hours" ? "bg-white shadow-sm text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                            unit === "hours" 
+                                ? "bg-blue-500 text-white shadow-sm" 
+                                : "text-gray-500 hover:bg-gray-50"
+                        }`}
                     >
                         時間
                     </button>
                 </div>
             </div>
+          </div>
 
-            <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                   <label className="text-sm font-semibold text-gray-700">収穫量 <span className="text-xs font-normal text-gray-500">(任意)</span></label>
-                   <button 
-                     onClick={() => { setHarvestQuantity(""); }} 
-                     className="text-xs text-gray-400 hover:text-gray-600"
-                   >
-                     クリア
-                   </button>
-                </div>
-                <div className="flex items-end gap-3">
-                    <div className="flex-1">
-                        <input
-                            type="number"
-                            value={harvestQuantity}
-                            onChange={(e) => setHarvestQuantity(e.target.value)}
-                            placeholder="0"
-                            className="w-full text-2xl font-bold border-b-2 border-gray-200 focus:border-emerald-500 px-1 py-2 bg-transparent outline-none"
-                        />
-                    </div>
-                    <div className="w-24">
-                        <input
-                             type="text"
-                             value={harvestUnit}
-                             onChange={(e) => setHarvestUnit(e.target.value)}
-                             className="w-full text-right text-sm font-medium text-gray-600 border-b-2 border-gray-200 focus:border-gray-400 px-1 py-3 bg-transparent outline-none"
-                             placeholder="単位 (kg)"
-                        />
-                    </div>
-                </div>
+          {/* Harvest Input (Optional) */}
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <div className="flex items-center gap-2 mb-3 text-gray-500">
+                <Leaf className="w-4 h-4" />
+                <label className="text-xs font-bold uppercase tracking-wider">収穫量 (任意)</label>
             </div>
-
-            <div className="flex gap-3 pt-4 pb-safe-bottom">
-                <button
-                    onClick={onClose}
-                    className="flex-1 py-3.5 flex items-center justify-center gap-2 text-gray-500 font-medium hover:bg-gray-50 rounded-xl transition-colors"
-                >
-                    <SkipForward className="w-4 h-4" />
-                    スキップ
-                </button>
-                <button
-                    onClick={handleSubmit}
-                    disabled={!duration || loading}
-                    className="flex-[2] py-3.5 flex items-center justify-center gap-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-200 transition-all"
-                >
-                    <Save className="w-4 h-4" />
-                    {loading ? "保存中..." : "記録して完了"}
-                </button>
+            
+            <div className="flex items-end gap-3">
+                <div className="flex-1">
+                    <input
+                        type="number"
+                        value={harvestQuantity}
+                        onChange={(e) => setHarvestQuantity(e.target.value)}
+                        placeholder="0"
+                        className="w-full text-3xl font-bold bg-transparent outline-none placeholder:text-gray-300 text-gray-900"
+                    />
+                </div>
+                <div className="shrink-0 w-24">
+                     <select
+                        value={harvestUnit}
+                        onChange={(e) => setHarvestUnit(e.target.value)}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm text-gray-700 outline-none focus:border-blue-500"
+                     >
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="個">個</option>
+                        <option value="箱">箱</option>
+                        <option value="束">束</option>
+                     </select>
+                </div>
             </div>
           </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-6 pt-4 flex items-center gap-3 shrink-0">
+          <button
+              onClick={onClose}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-gray-500 font-medium hover:bg-gray-100 active:scale-95 transition-all"
+          >
+              <SkipForward className="w-5 h-5" />
+              スキップ
+          </button>
+          <button
+              onClick={handleSubmit}
+              disabled={!duration || loading}
+              className={`flex-[2] flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
+                  !duration || loading
+                      ? "bg-gray-300 cursor-not-allowed shadow-none"
+                      : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+              }`}
+          >
+              <Save className="w-5 h-5" />
+              {loading ? "保存中..." : "記録する"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
