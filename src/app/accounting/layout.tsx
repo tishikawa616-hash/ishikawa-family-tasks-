@@ -1,31 +1,26 @@
 import type { Metadata } from "next";
-import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
-import ServiceWorkerRegister from "@/features/accounting/components/ServiceWorkerRegister";
 
-const notoSansJP = Noto_Sans_JP({
-  subsets: ["latin"],
-  weight: ["400", "700"], // Regular and Bold
-});
+// notoSansJP removed as it is applied in root layout
+// ServiceWorkerRegister removed as unused
 
 export const metadata: Metadata = {
-  title: "縺企≡縺ｮ險倬鹸",
-  description: "縺頑ｯ阪＆繧薙・縺溘ａ縺ｮ莨夊ｨ医い繝励Μ",
+  title: "お金の記録",
+  description: "お母さんのための会計アプリ",
   manifest: "/manifest.json",
-  themeColor: "#4D7C0F",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "螳ｶ險育ｰｿ",
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
+    title: "家計簿",
   },
 };
 
-import BottomNav from "@/features/accounting/components/BottomNav";
+export const viewport = {
+  themeColor: "#4D7C0F",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export default function AccountingLayout({
   children,
@@ -35,7 +30,6 @@ export default function AccountingLayout({
   return (
     <div className="accounting-layout">
         {children}
-        {/* Accounting specific BottomNav would go here if we hide the global one, or we merge them */}
     </div>
   );
 }

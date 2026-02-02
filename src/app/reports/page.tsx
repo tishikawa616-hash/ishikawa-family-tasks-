@@ -247,14 +247,14 @@ export default function ReportsPage() {
           >
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20 flex flex-col items-center justify-center text-center">
+              <div className="bg-linear-to-br from-blue-500 to-blue-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-500/20 flex flex-col items-center justify-center text-center">
                 <p className="text-blue-100 text-sm font-medium mb-1">総作業時間</p>
                 <p className="text-3xl font-bold">
                   {totalHours}
                   <span className="text-base font-normal text-blue-100 ml-1">時間</span>
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center text-center">
+              <div className="bg-linear-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center text-center">
                 <p className="text-emerald-100 text-sm font-medium mb-1">完了タスク</p>
                 <p className="text-3xl font-bold">
                   {tasks.length}

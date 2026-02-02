@@ -40,7 +40,7 @@ export default function ConfirmForm({ initialData }: ConfirmFormProps) {
             alert('保存に失敗しました: ' + result.error);
         }
     }} className="flex flex-col h-full">
-      <div className="bg-white rounded-3xl p-8 shadow-[10px_10px_20px_#e0dfda,_-10px_-10px_20px_#ffffff] mb-8 flex-grow">
+      <div className="bg-white rounded-3xl p-8 shadow-[10px_10px_20px_#e0dfda,-10px_-10px_20px_#ffffff] mb-8 grow">
         <div className="flex flex-col space-y-8">
           
           {/* Amount */}

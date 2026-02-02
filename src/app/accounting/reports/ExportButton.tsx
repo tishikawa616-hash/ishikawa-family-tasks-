@@ -42,7 +42,7 @@ export default function ExportButton({ fiscalYear }: Props) {
       <button
         onClick={handleExport}
         disabled={isPending}
-        className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-98 transition-all disabled:opacity-50"
+        className="w-full py-4 bg-linear-to-r from-emerald-500 to-green-600 text-white font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-98 transition-all disabled:opacity-50"
       >
         {isPending ? (
           <>

@@ -61,7 +61,7 @@ export function WorkHeatmap({ logs }: WorkHeatmapProps) {
                 showWeekdayLabels
                 gutterSize={3}
             />
-            <Tooltip id="heatmap-tooltip" className="z-50 !bg-slate-800 !text-xs !rounded-lg !px-3 !py-2 !opacity-100" />
+            <Tooltip id="heatmap-tooltip" className="z-50 bg-slate-800! text-xs! rounded-lg! px-3! py-2! opacity-100!" />
         </div>
       </div>
       
