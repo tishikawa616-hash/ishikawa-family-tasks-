@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowLeft, Save, User as UserIcon, Coins } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
+import { NotificationSettings } from "@/components/NotificationSettings";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -101,6 +102,9 @@ export default function SettingsPage() {
                 </div>
             </div>
         </section>
+
+        {/* Notification Settings */}
+        <NotificationSettings />
 
         {/* Agricultural Settings */}
         <section className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">

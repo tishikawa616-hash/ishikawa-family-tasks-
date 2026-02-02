@@ -3,7 +3,7 @@ import { Inter, Noto_Sans_JP } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { BottomNav } from "@/components/layout/BottomNav";
-import { PushNotificationManager } from "@/components/PushNotificationManager";
+// import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import { ClientVersion } from "@/components/pwa/ClientVersion";
 
@@ -54,7 +54,7 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <BottomNav />
           </Suspense>
-          <PushNotificationManager />
+{/* PushNotificationManager removed */}
         </ToastProvider>
       </body>
     </html>

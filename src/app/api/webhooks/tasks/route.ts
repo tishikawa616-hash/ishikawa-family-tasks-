@@ -53,26 +53,34 @@ export async function POST(req: Request) {
       url: `/tasks/${record.id}`,
     });
 
-    const sendPromises = subscriptions.map(async (sub) => {
+    const sendPromises = subscriptions.map(async (row) => {
       try {
+        const sub = row.subscription; // Extract the nested subscription object
+        if (!sub || !sub.endpoint || !sub.keys) {
+            console.error("Invalid subscription data:", row.id);
+            return;
+        }
+
         await webpush.sendNotification(
           {
             endpoint: sub.endpoint,
             keys: {
-              p256dh: sub.p256dh,
-              auth: sub.auth,
+              p256dh: sub.keys.p256dh,
+              auth: sub.keys.auth,
             },
           },
           notificationPayload
         );
-      } catch (err: any) {
-        console.error("Error sending push:", err);
-        if (err.statusCode === 410) {
+        console.log(`Notification sent to subscription ${row.id}`);
+      } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        console.error(`Error sending push to ${row.id}:`, err);
+        if (err.statusCode === 410 || err.statusCode === 404) {
           // Subscription is gone, remove from DB
+          console.log(`Deleting expired subscription ${row.id}`);
           await supabaseAdmin
             .from("push_subscriptions")
             .delete()
-            .eq("id", sub.id);
+            .eq("id", row.id);
         }
       }
     });
