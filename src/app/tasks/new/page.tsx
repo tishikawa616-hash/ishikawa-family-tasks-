@@ -46,7 +46,7 @@ function NewTaskContent() {
 
       // Save task
       const { error } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .insert({
           title: taskData.title,
           description: taskData.description,

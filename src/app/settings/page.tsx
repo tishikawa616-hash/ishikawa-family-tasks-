@@ -21,7 +21,7 @@ export default function SettingsPage() {
       
       if (user) {
         const { data: profile } = await supabase
-          .from("profiles")
+          .from("task_profiles")
           .select("hourly_wage, display_name")
           .eq("id", user.id)
           .single();
@@ -53,7 +53,7 @@ export default function SettingsPage() {
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase.from("profiles").upsert(updates);
+      const { error } = await supabase.from("task_profiles").upsert(updates);
       if (error) throw error;
       
       alert("設定を保存しました");

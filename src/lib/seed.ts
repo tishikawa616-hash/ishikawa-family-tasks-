@@ -13,7 +13,7 @@ export async function seedMockData(supabase: SupabaseClient) {
     
     // 1. Ensure Profile exists
     const { error: profileError } = await supabase
-      .from("profiles")
+      .from("task_profiles")
       .upsert({
         id: user.id,
         email: user.email,
@@ -40,7 +40,7 @@ export async function seedMockData(supabase: SupabaseClient) {
     );
 
     const { error: tasksError } = await supabase
-      .from("tasks")
+      .from("task_tasks")
       .insert(tasks);
 
     if (tasksError) {

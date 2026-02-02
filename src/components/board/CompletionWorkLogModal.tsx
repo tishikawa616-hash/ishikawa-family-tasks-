@@ -41,7 +41,7 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
       const startTime = new Date(endTime.getTime() - durationInMinutes * 60000);
 
       // Create work log
-      const { error } = await supabase.from("work_logs").insert({
+      const { error } = await supabase.from("task_work_logs").insert({
         task_id: taskId,
         user_id: user.id,
         started_at: startTime.toISOString(),

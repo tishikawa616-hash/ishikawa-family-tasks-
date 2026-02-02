@@ -18,7 +18,7 @@ export default function LogsPage() {
 
   const fetchLogs = useCallback(async () => {
     const { data } = await supabase
-      .from("work_logs")
+      .from("task_work_logs")
       .select(`
         *,
         tasks:task_id (title),

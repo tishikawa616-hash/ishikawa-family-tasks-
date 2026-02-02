@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   const { error } = await supabase
-    .from("push_subscriptions")
+    .from("task_push_subscriptions")
     .upsert({ 
         user_id: user.id,
         subscription,

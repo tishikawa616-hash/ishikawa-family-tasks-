@@ -72,7 +72,7 @@ export function WorkLogModal({ isOpen, onClose, taskId, taskTitle }: WorkLogModa
         }
 
         // Create work log entry
-        const { error: insertError } = await supabase.from("work_logs").insert({
+        const { error: insertError } = await supabase.from("task_work_logs").insert({
           task_id: taskId,
           user_id: user.id,
           started_at: startTime ? new Date(`2000-01-01T${startTime}`).toISOString() : null,

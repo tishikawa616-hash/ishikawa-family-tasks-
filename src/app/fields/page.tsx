@@ -26,7 +26,7 @@ export default function FieldsPage() {
 
   const fetchFields = useCallback(async () => {
     const { data } = await supabase
-      .from("fields")
+      .from("task_fields")
       .select("*")
       .order("created_at", { ascending: true });
     if (data) {
@@ -50,7 +50,7 @@ export default function FieldsPage() {
   const handleAdd = async () => {
     if (!newName.trim()) return;
 
-    const { error } = await supabase.from("fields").insert({
+    const { error } = await supabase.from("task_fields").insert({
       name: newName.trim(),
       color: newColor,
       location: newLocation.trim() || null,
@@ -67,7 +67,7 @@ export default function FieldsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("この圃場を削除しますか？")) return;
 
-    const { error } = await supabase.from("fields").delete().eq("id", id);
+    const { error } = await supabase.from("task_fields").delete().eq("id", id);
     if (!error) {
       fetchFields();
     }

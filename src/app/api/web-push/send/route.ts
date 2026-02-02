@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   console.log(`Received webhook: ${type} on ${table}`);
 
   try {
-    if (table === "tasks" && (type === "INSERT" || type === "UPDATE")) {
+    if (table === "task_tasks" && (type === "INSERT" || type === "UPDATE")) {
       const task = record;
       const assignedTo = task.assigned_to;
       

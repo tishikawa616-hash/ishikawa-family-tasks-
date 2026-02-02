@@ -51,7 +51,7 @@ export function TaskForm({
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: profilesData } = await supabase.from("profiles").select("*");
+      const { data: profilesData } = await supabase.from("task_profiles").select("*");
       if (profilesData) {
         setProfiles(
           profilesData.map((p) => ({
@@ -63,7 +63,7 @@ export function TaskForm({
         );
       }
 
-      const { data: fieldsData } = await supabase.from("fields").select("*").order("name");
+      const { data: fieldsData } = await supabase.from("task_fields").select("*").order("name");
       if (fieldsData) {
         setFields(fieldsData.map(f => ({
             id: f.id,

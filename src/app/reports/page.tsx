@@ -48,20 +48,20 @@ export default function ReportsPage() {
       setLoading(true);
       
       // Fetch fields
-      const { data: fieldsData } = await supabase.from("fields").select("*");
+      const { data: fieldsData } = await supabase.from("task_fields").select("*");
       if (fieldsData) setFields(fieldsData);
 
       // Fetch user profile for hourly wage
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-          const { data: profile } = await supabase.from("profiles").select("hourly_wage").eq("id", user.id).single();
+          const { data: profile } = await supabase.from("task_profiles").select("hourly_wage").eq("id", user.id).single();
           if (profile && profile.hourly_wage) setHourlyWage(profile.hourly_wage);
       }
 
       // Fetch work logs
       const { data: logsData } = await supabase
-        .from("work_logs")
-        .select(`*, task:tasks (id, title, field_id)`)
+        .from("task_work_logs")
+        .select(`*, task:task_tasks (id, title, field_id)`)
         .order('started_at', { ascending: false });
       
       if (logsData) {
@@ -83,7 +83,7 @@ export default function ReportsPage() {
 
       // Fetch completed tasks
       const { data: tasksData } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .select("*")
         .order('created_at', { ascending: false });
 

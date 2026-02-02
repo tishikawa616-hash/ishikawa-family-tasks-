@@ -55,7 +55,7 @@ function HomeContent() {
   // Fetch Fields
   useEffect(() => {
     const fetchFields = async () => {
-      const { data } = await supabase.from("fields").select("*").order("name");
+      const { data } = await supabase.from("task_profiles").select("*").order("name");
       if (data) {
         setFields(data.map(f => ({
             id: f.id,
@@ -73,7 +73,7 @@ function HomeContent() {
     try {
       // Need to select field_id as well
       const { data: tasks, error } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .select(`
           *,
           recurrence_type,
@@ -139,7 +139,7 @@ function HomeContent() {
       .channel('tasks_realtime')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'tasks' },
+        { event: '*', schema: 'public', table: 'task_tasks' },
         (payload) => {
           console.log('Realtime update:', payload);
           fetchTasks(); // Refresh data on any change
@@ -239,7 +239,7 @@ function HomeContent() {
                     }
 
                     // Create Next Task
-                    supabase.from("tasks").insert({
+                    supabase.from("task_tasks").insert({
                         title: taskToCheck.title,
                         description: taskToCheck.description,
                         priority: taskToCheck.priority,
@@ -265,7 +265,7 @@ function HomeContent() {
     // Persist to database
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .update({ status: newStatus })
         .eq("id", taskId);
 
@@ -301,7 +301,7 @@ function HomeContent() {
   const handleDeleteTask = async () => {
     if (!editingTask) return;
     try {
-      const { error } = await supabase.from("tasks").delete().eq("id", editingTask.id);
+      const { error } = await supabase.from("task_tasks").delete().eq("id", editingTask.id);
       if (error) throw error;
 
       setBoard((prev) => ({
@@ -337,7 +337,7 @@ function HomeContent() {
       if (editingTask) {
         // Update existing task
         const { error } = await supabase
-          .from("tasks")
+          .from("task_tasks")
           .update({
             title: taskData.title,
             description: taskData.description,
@@ -361,7 +361,7 @@ function HomeContent() {
       } else {
         // Create new task
         const { error } = await supabase
-          .from("tasks")
+          .from("task_tasks")
           .insert({
             title: taskData.title,
             description: taskData.description,

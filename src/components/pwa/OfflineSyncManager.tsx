@@ -56,7 +56,7 @@ export function OfflineSyncManager() {
                 }
 
                 // 2. Insert Record
-                const { error: insertError } = await supabase.from("work_logs").insert({
+                const { error: insertError } = await supabase.from("task_work_logs").insert({
                     task_id: log.taskId,
                     user_id: user.id,
                     started_at: null,

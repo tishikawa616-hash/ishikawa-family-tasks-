@@ -26,7 +26,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
   useEffect(() => {
     const fetchTask = async () => {
       const { data, error } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .select(`
           *,
           recurrence_type,
@@ -91,7 +91,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
   }) => {
     try {
       const { error } = await supabase
-        .from("tasks")
+        .from("task_tasks")
         .update({
           title: taskData.title,
           description: taskData.description,
@@ -119,7 +119,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
   };
 
   const handleDelete = async () => {
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
+    const { error } = await supabase.from("task_tasks").delete().eq("id", id);
     if (!error) {
       router.push("/");
       router.refresh();

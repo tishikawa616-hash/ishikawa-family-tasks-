@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     // Fetch user's push subscriptions
     const { data: subscriptions, error } = await supabaseAdmin
-      .from("push_subscriptions")
+      .from("task_push_subscriptions")
       .select("*")
       .eq("user_id", record.assignee_id);
 
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
           // Subscription is gone, remove from DB
           console.log(`Deleting expired subscription ${row.id}`);
           await supabaseAdmin
-            .from("push_subscriptions")
+            .from("task_push_subscriptions")
             .delete()
             .eq("id", row.id);
         }
