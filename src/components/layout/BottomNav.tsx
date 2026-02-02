@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, Calendar, MapPin, PieChart, ClipboardList } from "lucide-react";
+import { LayoutGrid, Calendar, MapPin, PieChart, ClipboardList, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
@@ -27,7 +27,7 @@ export function BottomNav({ currentView: propCurrentView, onChangeView }: Bottom
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-xl border-t border-gray-200 z-40 pb-safe-bottom">
-      <div className="grid grid-cols-4 h-full">
+      <div className="grid grid-cols-5 h-full">
         {/* Board Tab */}
         <button
           onClick={() => {
@@ -102,6 +102,22 @@ export function BottomNav({ currentView: propCurrentView, onChangeView }: Bottom
             <PieChart className={cn("w-6 h-6", isReports && "fill-purple-100")} />
           </div>
           <span className="text-[10px] tracking-tight">分析</span>
+        </button>
+
+        {/* Accounting Tab */}
+        <button
+          onClick={() => router.push("/accounting")}
+          className={cn(
+            "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
+            pathname.startsWith("/accounting")
+              ? "text-orange-600 font-bold"
+              : "text-gray-400 hover:text-gray-600 font-medium"
+          )}
+        >
+          <div className={cn("p-1.5 rounded-xl transition-colors", pathname.startsWith("/accounting") ? "bg-orange-50" : "")}>
+            <Wallet className={cn("w-6 h-6", pathname.startsWith("/accounting") && "fill-orange-100")} />
+          </div>
+          <span className="text-[10px] tracking-tight">家計簿</span>
         </button>
       </div>
     </div>
