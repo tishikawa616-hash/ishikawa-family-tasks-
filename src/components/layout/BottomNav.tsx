@@ -104,18 +104,16 @@ export function BottomNav({ currentView: propCurrentView, onChangeView }: Bottom
           <span className="text-[10px] tracking-tight">分析</span>
         </button>
 
-        {/* Accounting Tab */}
+        {/* Accounting Tab (External) */}
         <button
-          onClick={() => router.push("/accounting")}
+          onClick={() => window.location.href = "https://ishikawa-accounting.vercel.app"}
           className={cn(
             "flex flex-col items-center justify-center gap-1.5 transition-all relative active:scale-95",
-            pathname.startsWith("/accounting")
-              ? "text-orange-600 font-bold"
-              : "text-gray-400 hover:text-gray-600 font-medium"
+            "text-gray-400 hover:text-gray-600 font-medium"
           )}
         >
-          <div className={cn("p-1.5 rounded-xl transition-colors", pathname.startsWith("/accounting") ? "bg-orange-50" : "")}>
-            <Wallet className={cn("w-6 h-6", pathname.startsWith("/accounting") && "fill-orange-100")} />
+          <div className={cn("p-1.5 rounded-xl transition-colors")}>
+            <Wallet className={cn("w-6 h-6")} />
           </div>
           <span className="text-[10px] tracking-tight">家計簿</span>
         </button>
