@@ -28,7 +28,7 @@ export default function AccountingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="accounting-layout">
+    <div className="accounting-layout accounting-theme">
         {children}
     </div>
   );

@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import ReportCharts from '@/features/accounting/components/ReportCharts';
 import MonthlyMemo from '@/features/accounting/components/MonthlyMemo';
+import MonthlyTable from '@/features/accounting/components/MonthlyTable';
 import { getMonthlyNote } from '@/app/accounting/assets/actions';
 import { ChevronLeft } from 'lucide-react';
 import ExportButton from './ExportButton';
@@ -111,12 +112,18 @@ export default async function ReportsPage() {
       </div>
 
       <div className="p-4 space-y-6">
+
+
          {/* Charts Section */}
          <ReportCharts 
             monthlyData={monthlyData} 
             businessCategoryData={businessCategoryData}
             householdCategoryData={householdCategoryData}
          />
+
+         {/* Monthly Table Section */}
+         <MonthlyTable monthlyData={monthlyData} />
+
 
          {/* Monthly Memo Section */}
          <MonthlyMemo initialContent={initialNote} yearMonth={currentMonthStr} />

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root {
+.accounting-theme {
   /* Primitive Colors */
   --color-cream-50: #fcfbf9;
   --color-cream-100: #f8f7f2;
@@ -26,15 +26,15 @@
   
   /* Layout */
   --nav-height: 80px;
-}
 
-body {
+  /* Apply Body-like styles to the wrapper */
   color: var(--foreground);
   background: var(--background);
   font-family: var(--font-noto-sans-jp), sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  padding-bottom: var(--nav-height); /* Ensure content isn't hidden behind nav */
+  min-height: 100vh;
 }
+
+/* Body styles moved to .accounting-theme */
 
 /* Utilities */
 @layer utilities {
