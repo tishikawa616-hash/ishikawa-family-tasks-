@@ -199,21 +199,29 @@ export function TaskCard({ task, currentColumnId, isDragging, onClick, onStatusC
                 </span>
               ))}
 
-              {task.assignee?.displayName && (
-                <div className="ml-auto pl-2">
-                  <div className="w-7 h-7 rounded-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center border-2 border-white shadow-sm" title={`担当者: ${task.assignee.displayName}`}>
-                    {task.assignee.avatarUrl ? (
-                        <img src={task.assignee.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
-                    ) : ( 
-                        <span className="text-[10px] font-bold text-indigo-600">
-                            {task.assignee.displayName.slice(0, 2)}
-                        </span>
-                    )}
-                  </div>
+              {/* Assignees (Multiple) */}
+              {task.assignees && task.assignees.length > 0 ? (
+                <div className="ml-auto pl-2 flex -space-x-2 overflow-hidden">
+                  {task.assignees.slice(0, 3).map((assignee) => (
+                    <div key={assignee.id} className="w-7 h-7 rounded-full bg-white ring-2 ring-white flex items-center justify-center shadow-sm" title={`担当者: ${assignee.displayName}`}>
+                        {assignee.avatarUrl ? (
+                            <img src={assignee.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : ( 
+                            <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                                <span className="text-[10px] font-bold text-indigo-600">
+                                    {assignee.displayName?.slice(0, 2) || "??"}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                  ))}
+                  {task.assignees.length > 3 && (
+                     <div className="w-7 h-7 rounded-full bg-gray-100 ring-2 ring-white flex items-center justify-center shadow-sm">
+                        <span className="text-[10px] font-bold text-gray-500">+{task.assignees.length - 3}</span>
+                     </div>
+                  )}
                 </div>
-              )}
-              
-              {!task.assignee && (
+              ) : (
                  <div className="ml-auto pl-2">
                     <div className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-200 text-gray-300">
                         <User className="w-3.5 h-3.5" />

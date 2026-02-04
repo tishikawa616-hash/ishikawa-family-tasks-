@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const dirs = ['src/features/accounting', 'src/app/accounting'];
 
-function traverse(dir) {
+function traverse(dir: string) {
   if (!fs.existsSync(dir)) return;
   const files = fs.readdirSync(dir);
   files.forEach(file => {
@@ -13,7 +13,7 @@ function traverse(dir) {
       traverse(fullPath);
     } else if (file.endsWith('.ts') || file.endsWith('.tsx')) {
       let content = fs.readFileSync(fullPath, 'utf8');
-      let original = content;
+      const original = content;
 
       // Replacements
       content = content.replace(/@\/components\//g, '@/features/accounting/components/');

@@ -5,12 +5,8 @@ export interface Task {
   status?: string;
   priority?: "low" | "medium" | "high";
   dueDate?: string;
-  assignee?: {
-    id: string;
-    displayName: string;
-    avatarUrl?: string;
-  };
-  assigneeId?: string;
+  assignees?: Profile[];
+  assigneeIds?: string[];
   tags?: string[];
   fieldId?: string;
   fieldName?: string;

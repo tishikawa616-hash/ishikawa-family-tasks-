@@ -72,20 +72,15 @@ function HomeContent() {
   const fetchTasks = useCallback(async () => {
     try {
       // Need to select field_id as well
+      // Fetch profiles first (cache me ideally)
+      const { data: profiles } = await supabase.from("task_profiles").select("*");
+
+      // Fetch tasks with assignees
       const { data: tasks, error } = await supabase
         .from("task_tasks")
         .select(`
           *,
-          recurrence_type,
-          recurrence_interval,
-          recurrence_end_date,
-          parent_task_id,
-          assignee:assignee_id (
-            id,
-            email,
-            display_name,
-            avatar_url
-          )
+          task_assignees(user_id)
         `)
         .order("created_at", { ascending: true });
 
@@ -94,14 +89,24 @@ function HomeContent() {
         return;
       }
 
-      if (tasks) {
+      if (tasks && profiles) {
         const newColumns = INITIAL_COLUMNS.map((col) => ({
           ...col,
           tasks: tasks
             .filter((t) => t.status === col.id)
             .map((t) => {
-               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-               const assigneeData = t.assignee as any;
+               // Map assignees
+               const assigneeRefs = t.task_assignees as { user_id: string }[] || [];
+               const currentAssignees = assigneeRefs.map(ref => {
+                   const profile = profiles.find(p => p.id === ref.user_id);
+                   return profile ? {
+                       id: profile.id,
+                       display_name: profile.display_name, 
+                       avatar_url: profile.avatar_url,
+                       email: profile.email
+                   } : null;
+               }).filter(Boolean);
+
                return {
                   id: t.id,
                   title: t.title,
@@ -109,18 +114,19 @@ function HomeContent() {
                   priority: t.priority,
                   dueDate: t.due_date,
                   tags: t.tags || [],
-                  assigneeId: t.assignee_id,
+                  assigneeIds: assigneeRefs.map(r => r.user_id),
+                  assignees: currentAssignees.map(p => ({
+                      id: p!.id,
+                      email: p!.email, 
+                      displayName: p!.display_name || "",
+                      avatarUrl: p!.avatar_url
+                  })),
                   // Map field_id to fieldId
                   fieldId: t.field_id,
                   recurrenceType: t.recurrence_type,
                   recurrenceInterval: t.recurrence_interval,
                   recurrenceEndDate: t.recurrence_end_date,
                   parentTaskId: t.parent_task_id,
-                  assignee: assigneeData ? {
-                    id: assigneeData.id,
-                    displayName: assigneeData.display_name || assigneeData.email,
-                    avatarUrl: assigneeData.avatar_url,
-                  } : undefined,
                };
             }),
         }));
@@ -215,7 +221,7 @@ function HomeContent() {
              setCompletionTask(taskToCheck);
 
              if (taskToCheck.recurrenceType && taskToCheck.dueDate) {
-                import("date-fns").then(({ addDays, addWeeks, addMonths }) => {
+                import("date-fns").then(async ({ addDays, addWeeks, addMonths }) => {
                     const currentDueDate = new Date(taskToCheck.dueDate!);
                     let nextDueDate: Date | null = null;
                     const interval = taskToCheck.recurrenceInterval || 1;
@@ -239,23 +245,34 @@ function HomeContent() {
                     }
 
                     // Create Next Task
-                    supabase.from("task_tasks").insert({
+                    const { data: newTask, error } = await supabase.from("task_tasks").insert({
                         title: taskToCheck.title,
                         description: taskToCheck.description,
                         priority: taskToCheck.priority,
                         status: "col-todo", // Reset to Todo
                         due_date: nextDueDate.toISOString(),
-                        assignee_id: taskToCheck.assigneeId,
+                        assignee_id: taskToCheck.assigneeIds?.[0] || null, // Legacy support
                         tags: taskToCheck.tags,
                         field_id: taskToCheck.fieldId,
                         recurrence_type: taskToCheck.recurrenceType,
                         recurrence_interval: taskToCheck.recurrenceInterval,
                         recurrence_end_date: taskToCheck.recurrenceEndDate,
-                        parent_task_id: taskToCheck.parentTaskId || taskToCheck.id // Chain it or link to original? Let's link to immediate parent if exists, or this one. actually immediate parent might be better for hierarchy but for simple chain, just linking to "previous" is fine. Schema comment said "original task", but for infinite chain, maybe just keep pointing to the *first* one? Or just don't worry about it for now. Let's make it simple: point to the task that spawned it.
-                    }).then(({ error }) => {
-                        if (error) console.error("Error creating recurring task:", error);
-                        else fetchTasks(); // Refresh to show new task
-                    });
+                        parent_task_id: taskToCheck.parentTaskId || taskToCheck.id
+                    }).select().single();
+
+                    if (error) {
+                         console.error("Error creating recurring task:", error);
+                    } else if (newTask && taskToCheck.assigneeIds && taskToCheck.assigneeIds.length > 0) {
+                         // Insert assignees
+                         const assigneeInserts = taskToCheck.assigneeIds.map(uid => ({
+                             task_id: newTask.id,
+                             user_id: uid
+                         }));
+                         await supabase.from("task_assignees").insert(assigneeInserts);
+                         fetchTasks(); // Refresh to show new task
+                    } else {
+                         fetchTasks();
+                    }
                 }
             });
         }
@@ -325,6 +342,7 @@ function HomeContent() {
     status: string;
     dueDate: string;
     assigneeId: string;
+    assigneeIds?: string[]; // START EDIT
     tags: string[];
     fieldId?: string;
     recurrence?: {
@@ -334,6 +352,8 @@ function HomeContent() {
     };
   }) => {
     try {
+      let savedTaskId = "";
+
       if (editingTask) {
         // Update existing task
         const { error } = await supabase
@@ -344,7 +364,7 @@ function HomeContent() {
             priority: taskData.priority,
             status: taskData.status,
             due_date: taskData.dueDate || null,
-            assignee_id: taskData.assigneeId || null,
+            assignee_id: taskData.assigneeIds?.[0] || null, // Legacy
             tags: taskData.tags,
             field_id: taskData.fieldId || null,
             recurrence_type: taskData.recurrence?.type || null,
@@ -354,13 +374,11 @@ function HomeContent() {
           .eq("id", editingTask.id);
 
         if (error) throw error;
-
-        // Update local state - re-fetch is safer for consistency but let's do simple update
-        fetchTasks(); 
+        savedTaskId = editingTask.id;
 
       } else {
         // Create new task
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("task_tasks")
           .insert({
             title: taskData.title,
@@ -368,22 +386,41 @@ function HomeContent() {
             priority: taskData.priority,
             status: taskData.status,
             due_date: taskData.dueDate || null, // Handle empty date
-            assignee_id: taskData.assigneeId || null,
+            assignee_id: taskData.assigneeIds?.[0] || null, // Legacy
             tags: taskData.tags, 
             field_id: taskData.fieldId || null,
             recurrence_type: taskData.recurrence?.type || null,
             recurrence_interval: taskData.recurrence?.interval || null,
             recurrence_end_date: taskData.recurrence?.endDate || null,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
-        
-        fetchTasks();
+        savedTaskId = data.id;
       }
+      
+      // Update Assignees
+      if (savedTaskId) {
+          // 1. Delete existing
+          await supabase.from("task_assignees").delete().eq("task_id", savedTaskId);
+          
+          // 2. Insert new
+          if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
+              const assigneeInserts = taskData.assigneeIds.map(uid => ({
+                  task_id: savedTaskId,
+                  user_id: uid
+              }));
+              await supabase.from("task_assignees").insert(assigneeInserts);
+          }
+      }
+
+      fetchTasks();
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error saving task:", err);
-      alert("タスクの保存に失敗しました。");
+      // alert("タスクの保存に失敗しました。");
+      alert(`タスクの保存に失敗しました: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

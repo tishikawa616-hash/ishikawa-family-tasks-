@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
-import CalendarHeatmap from 'react-calendar-heatmap';
+import CalendarHeatmap, { HeatmapValue } from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 import { Tooltip } from 'react-tooltip';
 import { format, subDays } from 'date-fns';
 
+interface WorkLog {
+  started_at: string;
+  duration?: number;
+}
+
 interface WorkHeatmapProps {
-  logs: any[];
+  logs: WorkLog[];
 }
 
 export function WorkHeatmap({ logs }: WorkHeatmapProps) {
@@ -51,7 +56,7 @@ export function WorkHeatmap({ logs }: WorkHeatmapProps) {
                     if (value.count < 6) return 'color-scale-3';
                     return 'color-scale-4'; // Very busy
                 }}
-                tooltipDataAttrs={(value: any) => {
+                tooltipDataAttrs={(value: HeatmapValue) => {
                     if (!value || !value.date) return null;
                     return {
                         'data-tooltip-id': 'heatmap-tooltip',

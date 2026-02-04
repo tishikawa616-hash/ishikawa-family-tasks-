@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     process.env.VAPID_PRIVATE_KEY!
   );
 
-  const { type, table, record, old_record, schema } = body;
+  const { type, table, record } = body;
 
   console.log(`Received webhook: ${type} on ${table}`);
 
@@ -82,8 +82,9 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ message: "Event ignored" });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Webhook processing error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

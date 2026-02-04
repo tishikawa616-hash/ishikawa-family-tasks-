@@ -104,7 +104,6 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
           recurrence_type: taskData.recurrence?.type || null,
           recurrence_interval: taskData.recurrence?.interval || null,
           recurrence_end_date: taskData.recurrence?.endDate || null,
-          updated_at: new Date().toISOString(),
         })
         .eq("id", id);
 
@@ -114,7 +113,9 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
       router.refresh();
     } catch (err) {
       console.error("Error updating task:", err);
-      alert("タスクの更新に失敗しました");
+      console.error("Error updating task:", err);
+      // alert("タスクの更新に失敗しました");
+      alert(`タスクの更新に失敗しました: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

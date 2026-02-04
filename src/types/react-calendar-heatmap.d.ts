@@ -4,7 +4,7 @@ declare module 'react-calendar-heatmap' {
     export interface HeatmapValue {
       date: string | Date;
       count: number;
-      [key: string]: any;
+      [key: string]: string | Date | number | undefined;
     }
   
     export interface Props {
@@ -18,8 +18,8 @@ declare module 'react-calendar-heatmap' {
       classForValue?: (value: HeatmapValue) => string | null;
       tooltipDataAttrs?: (value: HeatmapValue) => object | null;
       onClick?: (value: HeatmapValue) => void;
-      onMouseOver?: (e: any, value: HeatmapValue) => void;
-      onMouseLeave?: (e: any, value: HeatmapValue) => void;
+      onMouseOver?: (e: React.MouseEvent, value: HeatmapValue) => void;
+      onMouseLeave?: (e: React.MouseEvent, value: HeatmapValue) => void;
       gutterSize?: number;
       monthLabels?: string[];
       weekdayLabels?: string[];

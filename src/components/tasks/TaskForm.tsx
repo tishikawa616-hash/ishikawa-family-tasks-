@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { ChevronDown, RefreshCw, FileText, Trash2, Calendar, User, MapPin, Briefcase } from "lucide-react";
+import { ChevronDown, RefreshCw, FileText, Trash2, Calendar, User, MapPin, Briefcase, Check } from "lucide-react";
 import { Profile, Task, Column } from "@/types/board";
 import { Field } from "@/types/field";
 import { createClient } from "@/lib/supabase/client";
@@ -17,6 +17,7 @@ export interface TaskFormProps {
     status: string;
     dueDate: string;
     assigneeId: string;
+    assigneeIds?: string[];
     tags: string[];
     fieldId?: string;
     recurrence?: {
@@ -42,15 +43,32 @@ export function TaskForm({
   initialData,
   isPageMode = false,
 }: TaskFormProps) {
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const formRef = useRef<HTMLFormElement>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [isWorkLogOpen, setIsWorkLogOpen] = useState(false);
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(!!initialData?.recurrenceType);
+  
+  // Multiple Assignees State
+  // Initial data might use assigneeIds (new) or assigneeId (old/single)
+  // We need to support both for transition
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [showAssigneeMenu, setShowAssigneeMenu] = useState(false);
+
+  useEffect(() => {
+     if (initialData) {
+         if (initialData.assigneeIds && initialData.assigneeIds.length > 0) {
+             setSelectedAssignees(initialData.assigneeIds);
+         }
+     }
+  }, [initialData]);
+
   const supabase = createClient();
 
   useEffect(() => {
     const fetchData = async () => {
+      // ... (fetch profiles and fields logic is fine, but we can enable realtime profile updates here if needed)
       const { data: profilesData } = await supabase.from("task_profiles").select("*");
       if (profilesData) {
         setProfiles(
@@ -62,7 +80,7 @@ export function TaskForm({
           }))
         );
       }
-
+      
       const { data: fieldsData } = await supabase.from("task_fields").select("*").order("name");
       if (fieldsData) {
         setFields(fieldsData.map(f => ({
@@ -74,6 +92,34 @@ export function TaskForm({
     };
     fetchData();
   }, [supabase]);
+
+  const toggleAssignee = (id: string) => {
+      if (selectedAssignees.includes(id)) {
+          setSelectedAssignees(selectedAssignees.filter(a => a !== id));
+      } else {
+          setSelectedAssignees([...selectedAssignees, id]);
+      }
+  };
+
+  const handleEditProfileName = async (profile: Profile) => {
+      const newName = prompt("新しい名前を入力してください:", profile.displayName);
+      if (newName && newName !== profile.displayName) {
+          try {
+              const { error } = await supabase
+                .from("task_profiles")
+                .update({ display_name: newName })
+                .eq("id", profile.id);
+
+              if (error) throw error;
+              
+              // Update local state
+              setProfiles(profiles.map(p => p.id === profile.id ? { ...p, displayName: newName } : p));
+          } catch (err) {
+              console.error("Error updating profile name:", err);
+              alert("名前の更新に失敗しました");
+          }
+      }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +133,8 @@ export function TaskForm({
       priority: formData.get("priority") as "high" | "medium" | "low",
       status: formData.get("status") as string,
       dueDate: formData.get("dueDate") as string,
-      assigneeId: formData.get("assigneeId") as string,
+      assigneeId: selectedAssignees[0] || "", // Deprecated compatibility
+      assigneeIds: selectedAssignees, // NEW
       fieldId: formData.get("fieldId") as string,
       tags: [],
       recurrence: recurrenceEnabled ? {
@@ -292,28 +339,87 @@ export function TaskForm({
                     </div>
                 )}
 
-                {/* Assignee */}
+                {/* Assignees (Multiple Select) */}
                 {profiles.length > 0 && (
-                     <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
-                        <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
-                            <User className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <label className="text-xs font-bold text-gray-500 block mb-1">担当者</label>
-                            <div className="relative">
-                                <select
-                                    name="assigneeId"
-                                    defaultValue={initialData?.assigneeId || ""}
-                                    className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
-                                >
-                                    <option value="">指定なし</option>
-                                    {profiles.map(p => (
-                                        <option key={p.id} value={p.id}>{p.displayName}</option>
-                                    ))}
-                                </select>
+                     <div className="px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
+                                <User className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <label className="text-xs font-bold text-gray-500 block mb-1">担当者</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {/* Selected Assignees Chips */}
+                                    {selectedAssignees.map(id => {
+                                        const profile = profiles.find(p => p.id === id);
+                                        return profile ? (
+                                            <div key={id} className="flex items-center gap-2 bg-fuchsia-50 text-fuchsia-700 px-2 py-1 rounded-lg border border-fuchsia-100 text-sm font-bold">
+                                                <span>{profile.displayName}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditProfileName(profile);
+                                                    }}
+                                                    className="text-fuchsia-400 hover:text-fuchsia-600 p-0.5"
+                                                    title="名前を編集"
+                                                >
+                                                    <Briefcase className="w-3 h-3 rotate-90" /> {/* Pencil-like icon */}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleAssignee(id)}
+                                                    className="text-fuchsia-400 hover:text-fuchsia-600"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                        ) : null;
+                                    })}
+                                    
+                                    {/* Add Button / Dropdown Trigger */}
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAssigneeMenu(!showAssigneeMenu)}
+                                            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                                        >
+                                            +
+                                        </button>
+                                        
+                                        {/* Dropdown Menu */}
+                                        {showAssigneeMenu && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowAssigneeMenu(false)} />
+                                                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-100">
+                                                    {profiles.map(p => {
+                                                        const isSelected = selectedAssignees.includes(p.id);
+                                                        return (
+                                                            <button
+                                                                key={p.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    toggleAssignee(p.id);
+                                                                    // Keep menu open for multi-select
+                                                                }}
+                                                                className={cn(
+                                                                    "w-full text-left px-4 py-2 text-sm font-medium flex items-center justify-between",
+                                                                    isSelected ? "bg-fuchsia-50 text-fuchsia-700" : "text-gray-700 hover:bg-gray-50"
+                                                                )}
+                                                            >
+                                                                <span>{p.displayName}</span>
+                                                                {isSelected && <Check className="w-4 h-4" />}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <input type="hidden" name="assigneeIds" value={JSON.stringify(selectedAssignees)} />
                             </div>
                         </div>
-                        <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
                     </div>
                 )}
             </div>

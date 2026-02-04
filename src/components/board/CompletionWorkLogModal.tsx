@@ -75,8 +75,8 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
             🎉
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">お疲れ様でした！</h2>
-          <p className="text-sm text-gray-500 break-words leading-relaxed px-4">
-            <span className="font-semibold text-gray-800">"{taskTitle}"</span><br/>
+          <p className="text-sm text-gray-500 wrap-break-word leading-relaxed px-4">
+            <span className="font-semibold text-gray-800">&ldquo;{taskTitle}&rdquo;</span><br/>
             の作業を記録しますか？
           </p>
         </div>
@@ -171,10 +171,10 @@ export function CompletionWorkLogModal({ isOpen, onClose, onSaved, taskId, taskT
           <button
               onClick={handleSubmit}
               disabled={!duration || loading}
-              className={`flex-[2] flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
+              className={`flex-2 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white font-bold shadow-lg shadow-blue-500/30 active:scale-95 transition-all ${
                   !duration || loading
                       ? "bg-gray-300 cursor-not-allowed shadow-none"
-                      : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                      : "bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
               }`}
           >
               <Save className="w-5 h-5" />
