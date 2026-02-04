@@ -56,8 +56,13 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
         status: data.status,
         priority: data.priority,
         dueDate: data.due_date,
-        assigneeId: data.assignee_id,
-        assignee: data.assignee,
+        assignees: data.assignee ? [{
+          id: data.assignee.id,
+          email: data.assignee.email,
+          displayName: data.assignee.display_name,
+          avatarUrl: data.assignee.avatar_url,
+        }] : [],
+        assigneeIds: data.assignee_id ? [data.assignee_id] : [],
         fieldId: data.field_id,
         tags: data.tags || [],
         createdAt: data.created_at,
@@ -81,6 +86,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
     status: string;
     dueDate: string;
     assigneeId: string;
+    assigneeIds?: string[];
     tags: string[];
     fieldId?: string;
     recurrence?: {
@@ -98,7 +104,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
           priority: taskData.priority,
           status: taskData.status,
           due_date: taskData.dueDate || null,
-          assignee_id: taskData.assigneeId || null,
+          assignee_id: taskData.assigneeId || (taskData.assigneeIds?.[0] || null),
           tags: taskData.tags,
           field_id: taskData.fieldId || null,
           recurrence_type: taskData.recurrence?.type || null,
