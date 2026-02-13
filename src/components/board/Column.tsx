@@ -26,7 +26,7 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
     <div
       className={cn(
         "flex flex-col w-full md:w-80 shrink-0 h-full max-h-full",
-        "bg-transparent transition-colors", // Transparent bg
+        "bg-transparent transition-colors overflow-hidden", // Transparent bg
         isOver && "bg-blue-50/50 rounded-xl"
       )}
     >
@@ -57,7 +57,7 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
       {/* Tasks Container - Remove heavy borders, let cards float */}
       <div
         ref={setNodeRef}
-        className="flex-1 space-y-3 overflow-y-auto px-1 min-h-[150px] pb-24 md:pb-4"
+        className="flex-1 space-y-3 overflow-y-auto px-1 min-h-0 pb-24 md:pb-4"
       >
         <SortableContext
           items={column.tasks.map((t) => t.id)}
