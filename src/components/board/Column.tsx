@@ -25,7 +25,7 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
   return (
     <div
       className={cn(
-        "flex flex-col w-full md:w-80 shrink-0",
+        "flex flex-col w-full md:w-80 shrink-0 h-full max-h-full",
         "bg-transparent transition-colors", // Transparent bg
         isOver && "bg-blue-50/50 rounded-xl"
       )}
