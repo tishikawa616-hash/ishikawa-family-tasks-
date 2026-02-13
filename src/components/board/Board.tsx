@@ -235,7 +235,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onS
          {/* Board Content */}
          <div className="flex-1 overflow-hidden relative">
             {/* Desktop View: All Columns */}
-            <div className="hidden md:flex gap-4 p-4 md:p-6 overflow-x-auto h-full items-start">
+            <div className="hidden md:flex gap-4 p-4 md:p-6 overflow-x-auto h-full">
                {board.columns.map((column) => (
                  <Column
                    key={column.id}

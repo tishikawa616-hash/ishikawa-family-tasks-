@@ -76,18 +76,32 @@ function HomeContent() {
       const { data: profiles } = await supabase.from("task_profiles").select("*");
 
       // Fetch tasks with assignees
-      const { data: tasks, error } = await supabase
+      // 1. Fetch Active Tasks (All)
+      const { data: activeTasks, error: activeError } = await supabase
         .from("task_tasks")
         .select(`
           *,
           task_assignees(user_id)
         `)
-        .order("created_at", { ascending: true });
+        .neq("status", "col-done")
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching tasks:", error);
-        return;
-      }
+      if (activeError) throw activeError;
+
+      // 2. Fetch Completed Tasks (Limit 50)
+      const { data: completedTasks, error: completedError } = await supabase
+        .from("task_tasks")
+        .select(`
+          *,
+          task_assignees(user_id)
+        `)
+        .eq("status", "col-done")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (completedError) throw completedError;
+
+      const tasks = [...(activeTasks || []), ...(completedTasks || [])];
 
       if (tasks && profiles) {
         const newColumns = INITIAL_COLUMNS.map((col) => ({
