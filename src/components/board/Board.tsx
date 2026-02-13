@@ -28,6 +28,7 @@ interface BoardProps {
   onTaskMove: (taskId: string, newStatus: string) => void;
   onTaskClick?: (task: Task) => void;
   onStatusChange?: (taskId: string, newStatus: string) => void;
+  onLoadMore?: () => void;
 }
 
 // Client-side only check using useSyncExternalStore
@@ -35,7 +36,7 @@ const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onStatusChange }: BoardProps) {
+export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onStatusChange, onLoadMore }: BoardProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   // Use useSyncExternalStore for SSR-safe client detection (no hydration mismatch)
@@ -233,7 +234,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onS
          </div>
 
          {/* Board Content */}
-         <div className="flex-1 overflow-hidden relative">
+         <div className="flex-1 overflow-hidden relative min-h-0">
             {/* Desktop View: All Columns */}
             <div className="hidden md:flex gap-4 p-4 md:p-6 overflow-x-auto h-full">
                {board.columns.map((column) => (
@@ -243,6 +244,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onS
                    onAddTask={onAddTask}
                    onTaskClick={onTaskClick}
                    onStatusChange={onStatusChange}
+                   onLoadMore={column.id === "col-done" ? onLoadMore : undefined}
                  />
                ))}
             </div>
@@ -264,6 +266,7 @@ export function Board({ board, setBoard, onAddTask, onTaskMove, onTaskClick, onS
                        onAddTask={onAddTask}
                        onTaskClick={onTaskClick}
                        onStatusChange={onStatusChange}
+                       onLoadMore={activeColumn.id === "col-done" ? onLoadMore : undefined}
                      />
                    </motion.div>
                  )}

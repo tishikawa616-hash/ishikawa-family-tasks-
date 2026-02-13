@@ -45,6 +45,7 @@ function HomeContent() {
   // Field Filter State
   const [fields, setFields] = useState<Field[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string | "all">("all");
+  const [doneTasksLimit, setDoneTasksLimit] = useState(50);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -88,7 +89,9 @@ function HomeContent() {
 
       if (activeError) throw activeError;
 
-      // 2. Fetch Completed Tasks (Limit 50)
+
+
+      // 2. Fetch Completed Tasks (Limit dynamic)
       const { data: completedTasks, error: completedError } = await supabase
         .from("task_tasks")
         .select(`
@@ -97,7 +100,7 @@ function HomeContent() {
         `)
         .eq("status", "col-done")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(doneTasksLimit);
 
       if (completedError) throw completedError;
 
@@ -170,7 +173,7 @@ function HomeContent() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, fetchTasks]);
+  }, [supabase, doneTasksLimit]);
 
   // Fetch tasks on mount
   useEffect(() => {
@@ -542,7 +545,7 @@ function HomeContent() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden relative pb-20 md:pb-0 flex flex-col">
+      <main className="flex-1 overflow-hidden relative pb-20 md:pb-0 flex flex-col min-h-0">
         <OfflineSyncManager />
         {/* Weather Widget Section */}
         {currentView === "board" && (
@@ -559,6 +562,7 @@ function HomeContent() {
             onTaskMove={handleTaskMoved}
             onTaskClick={handleTaskClick}
             onStatusChange={handleTaskMoved}
+            onLoadMore={() => setDoneTasksLimit(prev => prev + 50)}
           />
         ) : (
           <CalendarView board={filteredBoard} />

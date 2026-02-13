@@ -15,9 +15,10 @@ interface ColumnProps {
   onAddTask: (columnId?: string) => void;
   onTaskClick?: (task: Task) => void;
   onStatusChange?: (taskId: string, newStatus: string) => void;
+  onLoadMore?: (columnId: string) => void;
 }
 
-export function Column({ column, onAddTask, onTaskClick, onStatusChange }: ColumnProps) {
+export function Column({ column, onAddTask, onTaskClick, onStatusChange, onLoadMore }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
   });
@@ -67,6 +68,16 @@ export function Column({ column, onAddTask, onTaskClick, onStatusChange }: Colum
             <TaskCard key={task.id} task={task} currentColumnId={column.id} onClick={() => onTaskClick?.(task)} onStatusChange={onStatusChange} />
           ))}
         </SortableContext>
+
+        {/* Load More Button - Only for columns with onLoadMore prop */}
+        {column.tasks.length > 0 && onLoadMore && (
+             <button 
+                onClick={() => onLoadMore(column.id)}
+                className="w-full py-2 text-sm text-gray-400 font-medium hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+             >
+                <span>もっと読み込む...</span>
+             </button>
+        )}
 
         {column.tasks.length === 0 && (
           <div 
