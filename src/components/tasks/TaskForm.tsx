@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { ChevronDown, RefreshCw, FileText, Trash2, Calendar, User, MapPin, Briefcase, Check } from "lucide-react";
+import { ChevronDown, RefreshCw, FileText, Trash2, MapPin, Check } from "lucide-react";
 import { Profile, Task, Column } from "@/types/board";
 import { Field } from "@/types/field";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { TaskComments } from "@/components/board/TaskComments";
+import Image from "next/image";
 import { WorkLogModal } from "@/components/board/WorkLogModal";
 
 export interface TaskFormProps {
@@ -147,344 +147,300 @@ export function TaskForm({
 
   return (
     <>
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden relative">
-      <div className={cn("flex-1 overflow-y-auto", isPageMode ? "pb-32" : "pb-24")}>
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 h-full max-h-full overflow-hidden relative">
+      <div className={cn("flex-1 overflow-y-auto w-full max-w-2xl mx-auto", isPageMode ? "pb-32 px-4 md:px-8" : "pb-24 px-6")}>
         
-        {/* Section 1: Hero Input (Title & Description) */}
-        <div className={cn(
-            "pt-6 pb-6 px-5 space-y-4 animate-enter-up",
-            isPageMode ? "bg-white" : "bg-white/50"
-        )}>
-            {/* Title */}
-            <input
-                type="text"
+        {/* Section 1: Hero Input (What to do?) */}
+        <div className="pt-8 pb-6 space-y-4 animate-enter-up">
+            <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest pl-1">
+                何をしますか？
+            </label>
+            <textarea
                 name="title"
                 required
                 autoFocus={!isPageMode}
                 defaultValue={initialData?.title}
-                placeholder="新しいタスク..."
-                className="w-full text-2xl font-bold text-gray-900 placeholder:text-gray-300 bg-transparent border-none p-0 focus:ring-0 tracking-tight"
+                placeholder="例：牛乳を買う、ゴミ出し..."
+                className="w-full text-3xl md:text-4xl font-black text-gray-900 placeholder:text-gray-200 bg-transparent border-none p-0 focus:ring-0 tracking-tight resize-none overflow-hidden placeholder:font-bold"
+                rows={2}
+                onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = `${target.scrollHeight}px`;
+                }}
             />
-            
-            {/* Description */}
-            <div className="relative">
-                <FileText className="absolute top-3 left-0 w-5 h-5 text-gray-400" />
-                <textarea
-                    name="description"
-                    rows={2}
-                    defaultValue={initialData?.description}
-                    placeholder="詳細やメモを追加（任意）"
-                    className="w-full bg-transparent border-none pl-8 pr-0 py-2.5 text-base text-gray-600 placeholder:text-gray-400 focus:ring-0 resize-none min-h-12"
-                />
-            </div>
         </div>
 
-        <div className="px-4 space-y-6 animate-enter-up" style={{ animationDelay: '50ms' }}>
+        <div className="space-y-8 pb-8 animate-enter-up" style={{ animationDelay: '50ms' }}>
             
-            {/* Section 2: Priority (No Icons, Large Targets) */}
-            <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block px-1">優先度</label>
-                <div className="grid grid-cols-3 gap-2">
-                    {[
-                        { value: "high", label: "高", color: "text-red-600", bg: "bg-white border-gray-200 peer-checked:bg-red-50 peer-checked:border-red-200 peer-checked:text-red-700" },
-                        { value: "medium", label: "中", color: "text-amber-600", bg: "bg-white border-gray-200 peer-checked:bg-amber-50 peer-checked:border-amber-200 peer-checked:text-amber-700" },
-                        { value: "low", label: "低", color: "text-blue-600", bg: "bg-white border-gray-200 peer-checked:bg-blue-50 peer-checked:border-blue-200 peer-checked:text-blue-700" },
-                    ].map((p) => (
-                        <label key={p.value} className="cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="priority"
-                                value={p.value}
-                                defaultChecked={initialData?.priority === p.value || (!initialData && p.value === "medium")}
-                                className="peer sr-only"
-                            />
-                            <div className={cn(
-                                "flex items-center justify-center py-4 rounded-xl border-2 transition-all active:scale-[0.98]",
-                                "text-sm font-bold text-gray-500",
-                                p.bg
-                            )}>
-                                {p.label}
-                            </div>
-                        </label>
-                    ))}
+            {/* Quick Date Selection */}
+            <div className="space-y-3">
+                 <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest pl-1">
+                    いつ？ (期限)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                    <QuickDateButton 
+                        label="今日" 
+                        dateValue={getIsoDateString(0)} 
+                        currentSelection={initialData?.dueDate ? initialData.dueDate.split('T')[0] : ""}
+                    />
+                    <QuickDateButton 
+                        label="明日" 
+                        dateValue={getIsoDateString(1)} 
+                        currentSelection={initialData?.dueDate ? initialData.dueDate.split('T')[0] : ""}
+                    />
+                    <QuickDateButton 
+                        label="週末" 
+                        dateValue={getIsoDateString(getDaysUntilWeekend())} 
+                        currentSelection={initialData?.dueDate ? initialData.dueDate.split('T')[0] : ""}
+                    />
+                    <div className="relative flex-1 min-w-[140px]">
+                        <input
+                            type="date"
+                            name="dueDate"
+                            className="w-full bg-gray-50 border-2 border-transparent hover:border-blue-100 focus:border-blue-500 rounded-2xl py-3 px-4 text-sm font-bold text-gray-700 transition-all cursor-pointer h-[52px]"
+                            defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : ""}
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Section 3: Schedule Card (Simpler) */}
-            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
-                {/* Due Date */}
-                <div className="relative border-b border-gray-100">
-                    <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
-                            <Calendar className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0 relative">
-                            <label className="text-xs font-bold text-gray-500 block mb-1">期限</label>
-                            <input
-                                type="date"
-                                name="dueDate"
-                                className="w-full bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 h-8"
-                                defaultValue={initialData?.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : ""}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Recurrence Toggle */}
-                <div className="p-4 md:py-3">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-4">
-                            <div className={cn(
-                                "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors",
-                                recurrenceEnabled ? "bg-indigo-50 text-indigo-600" : "bg-gray-100 text-gray-400"
-                            )}>
-                                <RefreshCw className="w-5 h-5" />
-                            </div>
-                            <label className="text-base font-bold text-gray-700">繰り返し</label>
-                        </div>
-                        <button
-                            type="button"
-                            role="switch"
-                            aria-checked={recurrenceEnabled}
-                            onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}
-                            className={cn(
-                                "relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20",
-                                recurrenceEnabled ? "bg-indigo-500" : "bg-gray-200"
-                            )}
-                        >
-                            <span className={cn(
-                                "inline-block h-5 w-5 transform rounded-full bg-white transition duration-200 ease-in-out shadow-sm",
-                                recurrenceEnabled ? "translate-x-6" : "translate-x-1"
-                            )} />
-                        </button>
-                    </div>
-                    
-                    {recurrenceEnabled && (
-                        <div className="flex gap-3 pl-14 animate-in slide-in-from-top-2 fade-in duration-200">
-                            <div className="relative flex-1">
-                                <select
-                                    name="recurrenceType"
-                                    defaultValue={initialData?.recurrenceType || "weekly"}
-                                    className="w-full appearance-none bg-gray-50 border-none rounded-xl py-3 pl-4 pr-10 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500/20"
+            {/* Quick Assignees Selection */}
+            {profiles.length > 0 && (
+                <div className="space-y-3">
+                    <label className="block text-sm font-bold text-gray-400 uppercase tracking-widest pl-1">
+                        誰が？ (担当)
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                        {profiles.map(p => {
+                            const isSelected = selectedAssignees.includes(p.id);
+                            return (
+                                <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => toggleAssignee(p.id)}
+                                    className={cn(
+                                        "relative flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all",
+                                        isSelected ? "bg-blue-50/50 scale-105" : "hover:bg-gray-50 grayscale hover:grayscale-0 opacity-60 hover:opacity-100"
+                                    )}
                                 >
-                                    <option value="daily">毎日</option>
-                                    <option value="weekly">毎週</option>
-                                    <option value="monthly">毎月</option>
+                                    <div className={cn(
+                                        "w-14 h-14 rounded-full p-1 transition-all",
+                                        isSelected ? "bg-linear-to-tr from-blue-400 to-indigo-500 shadow-md shadow-blue-500/20" : "bg-transparent"
+                                    )}>
+                                        <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 border-2 border-white">
+                                           <Image 
+                                                src={p.avatarUrl || 'https://ui-avatars.com/api/?name=User&background=random'} 
+                                                alt={p.displayName || 'Assignee avatar'} 
+                                                width={56}
+                                                height={56}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    </div>
+                                    <span className={cn(
+                                        "text-xs font-bold truncate max-w-[60px]",
+                                        isSelected ? "text-blue-700" : "text-gray-500"
+                                    )}>
+                                        {p.displayName}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <input type="hidden" name="assigneeIds" value={JSON.stringify(selectedAssignees)} />
+                </div>
+            )}
+
+            {/* Advanced Options Toggle */}
+            <details className="group border-t-2 border-dashed border-gray-100 pt-6 mt-6">
+                <summary className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-blue-500 transition-colors list-none font-bold text-sm tracking-wide pl-1">
+                    <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+                    詳細設定 (メモ・繰り返し・重要度など)
+                </summary>
+                
+                <div className="pt-6 pb-2 space-y-6 animate-in slide-in-from-top-2 fade-in duration-300">
+                    
+                    {/* Memo */}
+                    <div className="relative">
+                        <FileText className="absolute top-4 left-4 w-5 h-5 text-gray-300" />
+                        <textarea
+                            name="description"
+                            rows={3}
+                            defaultValue={initialData?.description}
+                            placeholder="詳しいメモを追加..."
+                            className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl pl-12 pr-4 py-4 text-base text-gray-700 placeholder:text-gray-400 resize-none transition-all"
+                        />
+                    </div>
+
+                    {/* Status & Priority Side by Side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         {/* Priority */}
+                         <div>
+                            <label className="text-xs font-bold text-gray-400 mb-2 block pl-1">重要度</label>
+                            <div className="flex bg-gray-50 p-1 rounded-xl">
+                                {[
+                                    { value: "low", label: "低", color: "text-blue-600 peer-checked:bg-white peer-checked:text-blue-600 peer-checked:shadow-sm" },
+                                    { value: "medium", label: "中", color: "text-gray-600 peer-checked:bg-white peer-checked:text-gray-900 peer-checked:shadow-sm" },
+                                    { value: "high", label: "高", color: "text-red-600 peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm" },
+                                ].map((p) => (
+                                    <label key={p.value} className="flex-1 cursor-pointer group">
+                                        <input
+                                            type="radio"
+                                            name="priority"
+                                            value={p.value}
+                                            defaultChecked={initialData?.priority === p.value || (!initialData && p.value === "medium")}
+                                            className="peer sr-only"
+                                        />
+                                        <div className={cn(
+                                            "flex items-center justify-center py-2.5 rounded-lg transition-all",
+                                            "text-sm font-bold text-gray-400",
+                                            p.color
+                                        )}>
+                                            {p.label}
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Status Override */}
+                        <div>
+                             <label className="text-xs font-bold text-gray-400 mb-2 block pl-1">保存先のリスト</label>
+                             <div className="relative">
+                                <select
+                                    name="status"
+                                    className="w-full appearance-none bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 cursor-pointer"
+                                    defaultValue={initialData?.status || initialStatus || columns[0]?.id}
+                                >
+                                    {columns.map(col => (
+                                        <option key={col.id} value={col.id}>{col.title}</option>
+                                    ))}
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            </div>
-                            <div className="relative w-28">
-                                <input 
-                                    type="number" 
-                                    name="recurrenceInterval"
-                                    min="1"
-                                    placeholder="1"
-                                    defaultValue={initialData?.recurrenceInterval || 1}
-                                    className="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-gray-700 text-center focus:ring-2 focus:ring-indigo-500/20"
-                                />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">回毎</span>
-                            </div>
+                             </div>
                         </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Section 4: Details Card (Large Targets) */}
-            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden divide-y divide-gray-100">
-                
-                {/* Status */}
-                <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
-                    <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-500 flex items-center justify-center shrink-0">
-                         <Briefcase className="w-5 h-5" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                         <label className="text-xs font-bold text-gray-500 block mb-1">ステータス</label>
-                         <div className="relative">
-                            <select
-                                name="status"
-                                className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
-                                defaultValue={initialData?.status || initialStatus || columns[0]?.id}
-                            >
-                                {columns.map(col => (
-                                    <option key={col.id} value={col.id}>{col.title}</option>
-                                ))}
-                            </select>
-                         </div>
-                    </div>
-                    <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
-                </div>
 
-                {/* Field */}
-                {fields.length > 0 && (
-                     <div className="flex items-center gap-4 px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <MapPin className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <label className="text-xs font-bold text-gray-500 block mb-1">圃場</label>
+                    {/* Field if any */}
+                    {fields.length > 0 && (
+                         <div>
+                            <label className="text-xs font-bold text-gray-400 mb-2 block pl-1">場所・カテゴリ (任意)</label>
                             <div className="relative">
                                 <select
                                     name="fieldId"
                                     defaultValue={initialData?.fieldId || ""}
-                                    className="w-full appearance-none bg-transparent border-none p-0 text-base font-semibold text-gray-900 focus:ring-0 cursor-pointer h-8 relative z-10"
+                                    className="w-full appearance-none bg-gray-50 border-2 border-transparent focus:border-blue-500 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-gray-700 cursor-pointer"
                                 >
                                     <option value="">指定なし</option>
                                     {fields.map(f => (
                                         <option key={f.id} value={f.id}>{f.name}</option>
                                     ))}
                                 </select>
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             </div>
                         </div>
-                        <ChevronDown className="w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
-                )}
+                    )}
 
-                {/* Assignees (Multiple Select) */}
-                {profiles.length > 0 && (
-                     <div className="px-4 py-4 md:py-3 transition-colors active:bg-gray-50 relative group">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-fuchsia-50 text-fuchsia-500 flex items-center justify-center shrink-0">
-                                <User className="w-5 h-5" />
+                    {/* Recurrence (Simplified) */}
+                    <div className="bg-gray-50 rounded-2xl p-4">
+                         <div className="flex items-center gap-3 mb-2 cursor-pointer" onClick={() => setRecurrenceEnabled(!recurrenceEnabled)}>
+                            <RefreshCw className={cn("w-5 h-5", recurrenceEnabled ? "text-indigo-500" : "text-gray-400")} />
+                            <span className="text-sm font-bold text-gray-700 select-none">このタスクを繰り返す</span>
+                            <div className={cn(
+                                "ml-auto relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                                recurrenceEnabled ? "bg-indigo-500" : "bg-gray-300"
+                            )}>
+                                <span className={cn(
+                                    "inline-block h-4 w-4 transform rounded-full bg-white transition",
+                                    recurrenceEnabled ? "translate-x-6" : "translate-x-1"
+                                )} />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <label className="text-xs font-bold text-gray-500 block mb-1">担当者</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {/* Selected Assignees Chips */}
-                                    {selectedAssignees.map(id => {
-                                        const profile = profiles.find(p => p.id === id);
-                                        return profile ? (
-                                            <div key={id} className="flex items-center gap-2 bg-fuchsia-50 text-fuchsia-700 px-2 py-1 rounded-lg border border-fuchsia-100 text-sm font-bold">
-                                                <span>{profile.displayName}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEditProfileName(profile);
-                                                    }}
-                                                    className="text-fuchsia-400 hover:text-fuchsia-600 p-0.5"
-                                                    title="名前を編集"
-                                                >
-                                                    <Briefcase className="w-3 h-3 rotate-90" /> {/* Pencil-like icon */}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => toggleAssignee(id)}
-                                                    className="text-fuchsia-400 hover:text-fuchsia-600"
-                                                >
-                                                    ×
-                                                </button>
-                                            </div>
-                                        ) : null;
-                                    })}
-                                    
-                                    {/* Add Button / Dropdown Trigger */}
-                                    <div className="relative">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAssigneeMenu(!showAssigneeMenu)}
-                                            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200"
-                                        >
-                                            +
-                                        </button>
-                                        
-                                        {/* Dropdown Menu */}
-                                        {showAssigneeMenu && (
-                                            <>
-                                                <div className="fixed inset-0 z-10" onClick={() => setShowAssigneeMenu(false)} />
-                                                <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-20 overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-100">
-                                                    {profiles.map(p => {
-                                                        const isSelected = selectedAssignees.includes(p.id);
-                                                        return (
-                                                            <button
-                                                                key={p.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    toggleAssignee(p.id);
-                                                                    // Keep menu open for multi-select
-                                                                }}
-                                                                className={cn(
-                                                                    "w-full text-left px-4 py-2 text-sm font-medium flex items-center justify-between",
-                                                                    isSelected ? "bg-fuchsia-50 text-fuchsia-700" : "text-gray-700 hover:bg-gray-50"
-                                                                )}
-                                                            >
-                                                                <span>{p.displayName}</span>
-                                                                {isSelected && <Check className="w-4 h-4" />}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
+                         </div>
+                         
+                         {recurrenceEnabled && (
+                            <div className="flex gap-2 pt-3 border-t border-gray-200/60 mt-3 animate-in fade-in">
+                                <div className="relative flex-1">
+                                    <select
+                                        name="recurrenceType"
+                                        defaultValue={initialData?.recurrenceType || "weekly"}
+                                        className="w-full appearance-none bg-white border-none rounded-xl py-2 pl-3 pr-8 text-sm font-bold text-gray-700 shadow-sm"
+                                    >
+                                        <option value="daily">毎日</option>
+                                        <option value="weekly">毎週</option>
+                                        <option value="monthly">毎月</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
-                                <input type="hidden" name="assigneeIds" value={JSON.stringify(selectedAssignees)} />
+                                <div className="relative w-24">
+                                    <input 
+                                        type="number" 
+                                        name="recurrenceInterval"
+                                        min="1"
+                                        placeholder="1"
+                                        defaultValue={initialData?.recurrenceInterval || 1}
+                                        className="w-full bg-white border-none rounded-xl py-2 px-3 text-sm font-bold text-gray-700 text-center shadow-sm"
+                                    />
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">回</span>
+                                </div>
                             </div>
-                        </div>
+                         )}
                     </div>
-                )}
-            </div>
-            
-            {/* Existing Task Actions - Styled generically */}
+
+                </div>
+            </details>
+
+            {/* Existing Task Actions */}
             {initialData && (
-                <div className="pt-2 animate-enter-up" style={{ animationDelay: '100ms' }}>
-                    <div className="bg-white/50 rounded-2xl p-2 space-y-2 border border-gray-100/50">
+                <div className="pt-6 mt-6 border-t-2 border-dashed border-gray-100 space-y-3">
+                    <button
+                        type="button"
+                        onClick={() => setIsWorkLogOpen(true)}
+                        className="w-full flex items-center justify-between px-4 py-4 bg-emerald-50 text-emerald-700 font-bold rounded-2xl hover:bg-emerald-100 transition-all"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Check className="w-5 h-5" />
+                            <span>作業記録を見る</span>
+                        </div>
+                    </button>
+                    
+                    {onDelete && (
                         <button
                             type="button"
-                            onClick={() => setIsWorkLogOpen(true)}
-                            className="w-full flex items-center justify-between px-4 py-3 bg-emerald-50/80 text-emerald-700 font-bold rounded-xl border border-emerald-100 hover:bg-emerald-100 transition-all active:scale-[0.98]"
+                            onClick={() => {
+                            if (confirm("本当に削除しますか？この操作は取り消せません。")) {
+                                onDelete();
+                            }
+                            }}
+                            className="w-full flex items-center justify-center gap-2 py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all"
                         >
-                            <div className="flex items-center gap-2">
-                                <FileText className="w-5 h-5" />
-                                <span>作業記録</span>
-                            </div>
-                            <ChevronDown className="w-4 h-4 -rotate-90 opacity-50" />
+                            <Trash2 className="w-5 h-5 opacity-70" />
+                            タスクを完全に削除する
                         </button>
-                        
-                        <div className="px-2">
-                             <TaskComments taskId={initialData.id} />
-                        </div>
-
-                        {onDelete && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                if (confirm("削除しますか？")) {
-                                    onDelete();
-                                }
-                                }}
-                                className="w-full flex items-center justify-center gap-2 py-3 text-red-500 font-semibold hover:bg-red-50 rounded-xl transition-all active:scale-[0.98]"
-                            >
-                                <Trash2 className="w-4 h-4 opacity-70" />
-                                削除
-                            </button>
-                        )}
-                    </div>
+                    )}
                 </div>
             )}
         </div>
       </div>
 
-      {/* Floating Footer */}
+      {/* Floating Footer Action Area */}
       <div className={cn(
-        "p-4 pt-2 bg-linear-to-t from-white via-white to-transparent dark:from-gray-900 pb-safe-bottom z-10",
-        isPageMode ? "sticky bottom-0 bg-white border-t border-gray-100/50" : "absolute bottom-0 left-0 right-0"
+        "p-4 md:p-6 bg-linear-to-t from-white via-white to-transparent pb-safe-bottom z-20",
+        isPageMode ? "fixed bottom-0 left-0 right-0 max-w-2xl mx-auto" : "absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100"
       )}>
-        <div className={cn(
-          "flex gap-3 rounded-2xl p-1",
-          /* Add a soft glow or shadow if wanted, but clean is better */
-        )}>
+        <div className="flex gap-3 max-w-2xl mx-auto">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-3.5 text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+            className="w-24 md:w-32 py-4 text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all flex items-center justify-center"
           >
-            キャンセル
+            やめる
           </button>
           <button
             type="submit"
-            className="flex-2 py-3.5 text-sm font-bold text-white bg-gray-900 hover:bg-black rounded-xl shadow-lg shadow-gray-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-4 text-base font-black text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            {initialData ? "保存" : "作成"}
+            {initialData ? "変更を保存する" : "タスクを追加する"}
           </button>
         </div>
       </div>
@@ -500,4 +456,44 @@ export function TaskForm({
     )}
     </>
   );
+}
+
+// Helper Components for the new UI
+function QuickDateButton({ label, dateValue, currentSelection }: { label: string, dateValue: string, currentSelection: string }) {
+    const isSelected = currentSelection === dateValue;
+    return (
+        <label className="cursor-pointer flex-1 min-w-[80px]">
+            <input 
+                type="radio" 
+                name="dueDate" 
+                value={dateValue} 
+                defaultChecked={isSelected} 
+                className="peer sr-only" 
+            />
+            <div className={cn(
+                "flex items-center justify-center py-3.5 px-2 rounded-2xl border-2 transition-all font-bold text-sm",
+                isSelected 
+                    ? "bg-blue-50 border-blue-500 text-blue-700 shadow-sm" 
+                    : "bg-white border-gray-100 text-gray-500 hover:border-blue-200 hover:bg-gray-50 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700"
+            )}>
+                {label}
+            </div>
+        </label>
+    );
+}
+
+// Helper functions for dates
+function getIsoDateString(offsetDays: number) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return d.toISOString().split('T')[0];
+}
+
+function getDaysUntilWeekend() {
+    const d = new Date();
+    const day = d.getDay();
+    // Assuming weekend starts on Saturday (6)
+    if (day === 6) return 0;
+    if (day === 0) return 6; // Next Saturday if it's already Sunday
+    return 6 - day;
 }

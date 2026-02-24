@@ -74,19 +74,22 @@ function NewTaskContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-safe-bottom">
-      {/* Mobile Page Header */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center gap-3 safe-p-top shadow-sm">
+    <div className="min-h-screen bg-white md:bg-gray-50/50 pb-safe-bottom">
+      {/* Mobile Page Header (Soft & Clean) */}
+      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100/50 px-4 py-3 md:py-4 flex items-center justify-between gap-3 safe-p-top shadow-sm md:shadow-none transition-all">
         <button 
           onClick={() => router.back()}
-          className="p-2 -ml-2 rounded-full hover:bg-gray-100 text-gray-600"
+          className="p-2.5 -ml-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">新しいタスク</h1>
+        <h1 className="text-lg font-bold text-gray-800 absolute left-1/2 -translate-x-1/2">
+            新しいタスク
+        </h1>
+        <div className="w-10"></div> {/* Spacer for centering */}
       </div>
 
-      <div className="premium-container">
+      <div className="premium-container max-w-2xl mx-auto h-[calc(100vh-60px)] md:h-auto md:min-h-0 md:bg-white md:shadow-2xl md:shadow-gray-200/50 md:mt-8 md:rounded-[2.5rem] md:overflow-hidden md:border md:border-gray-100">
         <TaskForm 
           isPageMode={true}
           onSubmit={handleSubmit}
