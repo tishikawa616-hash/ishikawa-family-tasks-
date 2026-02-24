@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { LayoutGrid, Calendar as CalendarIcon, Search, LogOut, Filter, BarChart3 } from "lucide-react";
-import { Board, CalendarView, TaskModal } from "@/components/board";
+import { ListView } from "@/components/tasks/ListView";
+import { CalendarView, TaskModal } from "@/components/board";
 import type { Board as BoardType, Task, Column } from "@/types/board";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -154,7 +155,7 @@ function HomeContent() {
     } finally {
         setIsLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, doneTasksLimit]);
 
   // Realtime subscription
   useEffect(() => {
@@ -173,7 +174,7 @@ function HomeContent() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, doneTasksLimit]);
+  }, [supabase, fetchTasks]);
 
   // Fetch tasks on mount
   useEffect(() => {
@@ -555,14 +556,12 @@ function HomeContent() {
         )}
 
         {currentView === "board" ? (
-          <Board
-            board={filteredBoard}
-            setBoard={setBoard}
-            onAddTask={openAddTaskModal}
-            onTaskMove={handleTaskMoved}
-            onTaskClick={handleTaskClick}
-            onStatusChange={handleTaskMoved}
-            onLoadMore={() => setDoneTasksLimit(prev => prev + 50)}
+          <ListView
+             columns={filteredBoard.columns}
+             onAddTask={openAddTaskModal}
+             onTaskClick={handleTaskClick}
+             onStatusChange={handleTaskMoved}
+             onLoadMoreDone={() => setDoneTasksLimit(prev => prev + 50)}
           />
         ) : (
           <CalendarView board={filteredBoard} />
